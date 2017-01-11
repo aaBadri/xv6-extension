@@ -43,8 +43,8 @@ sys_getppid(void) {
 }
 
 int
-sys_getPerformanceData(int *, int *) {
-
+sys_getPerformanceData(int*, int*) {
+    return 0;
 }
 
 int
