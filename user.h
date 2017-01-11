@@ -18,6 +18,7 @@ int fstat(int fd, struct stat*);
 int link(char*, char*);
 int mkdir(char*);
 int chdir(char*);
+int getPerformanceData(int *, int *);
 int dup(int);
 int getpid(void);
 int getppid(void);
