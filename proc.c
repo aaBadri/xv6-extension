@@ -47,6 +47,7 @@ allocproc(void) {
     return 0;
     found:
     p->state = EMBRYO;
+    p->rtime = 0 ;
     p->ctime = ticks;
     p->pid = nextpid++;
 
