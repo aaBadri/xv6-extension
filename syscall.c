@@ -90,7 +90,7 @@ extern int sys_getpid(void);
 
 extern int sys_getppid(void);
 
-extern int sys_getPerformanceData(int *, int *);
+extern int sys_getPerformanceData(void);
 
 extern int sys_kill(void);
 

@@ -45,9 +45,10 @@ allocproc(void) {
 
     release(&ptable.lock);
     return 0;
-
     found:
     p->state = EMBRYO;
+    p->rtime = 0 ;
+    p->ctime = ticks;
     p->pid = nextpid++;
 
     release(&ptable.lock);
@@ -217,6 +218,7 @@ exit(void) {
 
     // Jump into the scheduler, never to return.
     proc->state = ZOMBIE;
+    p->etime=ticks;
     sched();
     panic("zombie exit");
 }
