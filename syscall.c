@@ -90,6 +90,8 @@ extern int sys_getpid(void);
 
 extern int sys_getppid(void);
 
+extern int sys_getPerformanceData(int *, int *);
+
 extern int sys_kill(void);
 
 extern int sys_link(void);
@@ -139,6 +141,7 @@ static int (*syscalls[])(void) = {
         [SYS_link]    sys_link,
         [SYS_mkdir]   sys_mkdir,
         [SYS_close]   sys_close,
+        [SYS_getPerformanceData] sys_getPerformanceData,
 };
 
 void
