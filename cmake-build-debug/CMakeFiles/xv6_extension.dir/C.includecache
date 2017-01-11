@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/aliakbarbadri/Projects/C/xv6-extension/print_ppid.c
+types.h
+/home/aliakbarbadri/Projects/C/xv6-extension/types.h
+stat.h
+/home/aliakbarbadri/Projects/C/xv6-extension/stat.h
+user.h
+/home/aliakbarbadri/Projects/C/xv6-extension/user.h
+
+/home/aliakbarbadri/Projects/C/xv6-extension/stat.h
+
+/home/aliakbarbadri/Projects/C/xv6-extension/types.h
+
+/home/aliakbarbadri/Projects/C/xv6-extension/user.h
+

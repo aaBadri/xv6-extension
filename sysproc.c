@@ -43,7 +43,9 @@ sys_getppid(void) {
 }
 
 int
-sys_getPerformanceData(int *, int *) {
+sys_getPerformanceData(int *wtime, int *rtime) {
+    *wtime = proc->etime - proc->rtime;
+    *rtime = proc->rtime;
 
 }
 
