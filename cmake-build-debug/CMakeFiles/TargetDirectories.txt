@@ -1,0 +1,3 @@
+/home/aliakbarbadri/Projects/C/xv6-extension/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/aliakbarbadri/Projects/C/xv6-extension/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/aliakbarbadri/Projects/C/xv6-extension/cmake-build-debug/CMakeFiles/xv6_extension.dir
