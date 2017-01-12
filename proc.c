@@ -67,7 +67,155 @@ struct proc *removeData() {
     return data;
 }
 
+/*
+ 3queue implementation
+ */
+/*
+struct proc *Q0[NPROC];
+int front0 = 0;
+int rear0 = -1;
+int itemCount0 = 0;
+struct proc *Q1[NPROC];
+int front1 = 0;
+int rear1 = -1;
+int itemCount1 = 0;
+struct proc *Q2[NPROC];
+int front2 = 0;
+int rear2 = -1;
+int itemCount2 = 0;
 
+struct proc *peekQ(int priority) {
+    struct proc *data;
+    if (priority == 0) {
+        data = Q0[front0];
+    } else if (priority == 1) {
+        data = Q1[front1];
+    } else if (priority == 2) {
+        data = Q2[front2];
+    }
+
+    return data;
+}
+
+int isEmptyQ(int priority) {
+    int e;
+    if (priority == 0) {
+        if (itemCount0 == 0)
+            e = 1;
+        else
+            e = 0;
+    } else if (priority == 1) {
+        if (itemCount1 == 0)
+            e = 1;
+        else
+            e = 0;
+    } else if (priority == 2) {
+        if (itemCount2 == 0)
+            e = 1;
+        else
+            e = 0;
+    }
+    return e;
+}
+
+int isFullQ(int priority) {
+    int f;
+    if (priority == 0) {
+        if (itemCount0 == NPROC)
+            f = 1;
+        else
+            f = 0;
+    } else if (priority == 1) {
+        if (itemCount1 == NPROC)
+            f = 1;
+        else
+            f = 0;
+    } else if (priority == 2) {
+        if (itemCount2 == NPROC)
+            f = 1;
+        else
+            f = 0;
+    }
+    return f;
+}
+
+int sizeQ(int priority) {
+    int i;
+    if (priority == 0) {
+        i = itemCount0;
+    } else if (priority == 1) {
+        i = itemCount1;
+    } else if (priority == 2) {
+        i = itemCount2;
+    }
+    return i;
+}
+
+void insertQ(struct proc *data, int priority) {
+    if (priority == 0) {
+        if (isFullQ(priority) == 0) {
+
+            if (rear0 == NPROC - 1) {
+                rear0 = -1;
+            }
+
+            Q0[++rear0] = data;
+            itemCount0++;
+        }
+    } else if (priority == 1) {
+        if (isFullQ(priority) == 0) {
+
+            if (rear1 == NPROC - 1) {
+                rear1 = -1;
+            }
+
+            Q1[++rear1] = data;
+            itemCount1++;
+        }
+    } else if (priority == 2) {
+        if (isFullQ(priority) == 0) {
+
+            if (rear2 == NPROC - 1) {
+                rear2 = -1;
+            }
+
+            Q2[++rear2] = data;
+            itemCount2++;
+        }
+    }
+}
+
+struct proc *removeDataQ(int priority) {
+    struct proc *data;
+    if (priority == 0) {
+        *data = Q0[front0++];
+
+        if (front0 == NPROC) {
+            front0 = 0;
+        }
+
+        itemCount--;
+    } else if (priority == 1) {
+        *data = runnableQ[front++];
+
+        if (front == NPROC) {
+            front = 0;
+        }
+
+        itemCount--;
+    } else if (priority == 2) {
+        *data = runnableQ[front++];
+
+        if (front == NPROC) {
+            front = 0;
+        }
+
+        itemCount--;
+    }
+    return data;
+}
+
+*/
 static struct proc *initproc;
 
 int nextpid = 1;
@@ -104,6 +252,7 @@ allocproc(void) {
     found:
     p->state = EMBRYO;
     p->rtime = 0;
+    p->priority = 2;
     p->ctime = ticks;
     p->pid = nextpid++;
 
@@ -166,7 +315,11 @@ userinit(void) {
     acquire(&ptable.lock);
 
     p->state = RUNNABLE;
-    insert(p);
+    if (policy == 1)
+        insert(p);
+    else if(policy==2){
+        //TODO 3Q
+    }
 
     release(&ptable.lock);
 }
@@ -229,7 +382,12 @@ fork(void) {
     acquire(&ptable.lock);
 
     np->state = RUNNABLE;
-    insert(np);
+    if (policy == 1)
+        insert(np);
+    else if(policy==2){
+        //TODO 3Q
+    }
+    // insert(np);
     release(&ptable.lock);
 
     return pid;
@@ -321,25 +479,26 @@ wait(void) {
         sleep(proc, &ptable.lock);  //DOC: wait-sleep
     }
 }
+
 /**
  * Get index of high priority proccess
  * @return index of high priority proccess in proccess table
  */
-int getMinIndex(void){
+int getMinIndex(void) {
     struct proc *p;
     double minScore = 9999999.999999; //set to max value
     int indexOfProcess = -1;
     int minIndex = 999999; //set to max value
-    double s ;
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    double s;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         indexOfProcess++;
-        if(p->state != RUNNABLE) {
+        if (p->state != RUNNABLE) {
             continue;
         }
 
         s = 9999999.999999; //set to max value
         if (ticks - p->ctime != 0)
-            s = (double )p->rtime / (double )((double )ticks - (double )p->ctime);
+            s = (double) p->rtime / (double) ((double) ticks - (double) p->ctime);
         if (minScore > s) {
             minScore = s;
             minIndex = indexOfProcess;
@@ -349,6 +508,23 @@ int getMinIndex(void){
 
     return minIndex;
 }
+
+/**
+ * add runnable processes to runnableQ
+ */
+void addToRunnableQ() {
+    struct proc *p;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->state == RUNNABLE) {
+            if (policy == 1)
+                insert(p);
+            else if(policy==2){
+                //TODO 3Q
+            }
+        }
+    }
+}
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -368,8 +544,12 @@ scheduler(void) {
             // Loop over process table looking for process to run.
             if (policy == 1) { //for FRR policy
                 struct proc *p;
+                int indexOfProcess;
+                int minIndex;
+
                 acquire(&ptable.lock);
-                if(isEmpty()==0) {
+                addToRunnableQ();
+                if (isEmpty() == 0) {
                     p = removeData();
                     proc = p;
                     switchuvm(p);
@@ -379,6 +559,33 @@ scheduler(void) {
                     proc = 0;
                 }
                 release(&ptable.lock);
+
+
+                minIndex = getMinIndex();
+                indexOfProcess = -1;
+                for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+                    indexOfProcess++;
+                    if (p->state != RUNNABLE || indexOfProcess != minIndex)
+                        continue;
+                    else {
+                        // minP = &ptable.proc[minIndex];
+                        // Switch to chosen process.  It is the process's job
+                        // to release ptable.lock and then reacquire it
+                        // before jumping back to us.
+                        proc = p;
+                        switchuvm(p);
+                        p->state = RUNNING;
+                        swtch(&cpu->scheduler, p->context);
+                        switchkvm();
+                        // Process is done running for now.
+                        // It should have changed its p->state before coming back.
+                        proc = 0;
+                        minIndex = getMinIndex();
+                        indexOfProcess = -1;
+                        p = ptable.proc;
+                    }
+                }
+
             } else if (policy == 2) { //for GRT policy
                 struct proc *p;
                 int indexOfProcess;
@@ -438,6 +645,7 @@ scheduler(void) {
         index++;
     }
 }
+
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this
@@ -467,7 +675,11 @@ void
 yield(void) {
     acquire(&ptable.lock);  //DOC: yieldlock
     proc->state = RUNNABLE;
-    insert(proc);
+    if (policy == 1)
+        insert(proc);
+    else if(policy==2){
+        //TODO 3Q
+    }
     sched();
     release(&ptable.lock);
 }
@@ -538,7 +750,11 @@ wakeup1(void *chan) {
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
         if (p->state == SLEEPING && p->chan == chan) {
             p->state = RUNNABLE;
-            insert(p);
+            if (policy == 1)
+                insert(p);
+            else if(policy==2){
+                //TODO 3Q
+            }
         }
 }
 
@@ -564,7 +780,11 @@ kill(int pid) {
             // Wake process from sleep if necessary.
             if (p->state == SLEEPING) {
                 p->state = RUNNABLE;
-                insert(p);
+                if (policy == 1)
+                    insert(p);
+                else if(policy==2){
+                    //TODO 3Q
+                }
             }
             release(&ptable.lock);
             return 0;
