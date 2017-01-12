@@ -7,10 +7,66 @@
 #include "proc.h"
 #include "spinlock.h"
 
+
 struct {
     struct spinlock lock;
     struct proc proc[NPROC];
 } ptable;
+
+/*
+ queue implementation
+ */
+struct proc *runnableQ[NPROC];
+int front = 0;
+int rear = -1;
+int itemCount = 0;
+
+struct proc *peek() {
+    return runnableQ[front];
+}
+
+int isEmpty() {
+    if (itemCount == 0)
+        return 1;
+    else
+        return 0;
+}
+
+int isFull() {
+    if (itemCount == NPROC)
+        return 1;
+    else
+        return 0;
+}
+
+int size() {
+    return itemCount;
+}
+
+void insert(struct proc *data) {
+
+    if (isFull() == 0) {
+
+        if (rear == NPROC - 1) {
+            rear = -1;
+        }
+
+        runnableQ[++rear] = data;
+        itemCount++;
+    }
+}
+
+struct proc *removeData() {
+    struct proc *data = runnableQ[front++];
+
+    if (front == NPROC) {
+        front = 0;
+    }
+
+    itemCount--;
+    return data;
+}
+
 
 static struct proc *initproc;
 
@@ -47,7 +103,7 @@ allocproc(void) {
     return 0;
     found:
     p->state = EMBRYO;
-    p->rtime = 0 ;
+    p->rtime = 0;
     p->ctime = ticks;
     p->pid = nextpid++;
 
@@ -110,6 +166,7 @@ userinit(void) {
     acquire(&ptable.lock);
 
     p->state = RUNNABLE;
+    insert(p);
 
     release(&ptable.lock);
 }
@@ -172,7 +229,7 @@ fork(void) {
     acquire(&ptable.lock);
 
     np->state = RUNNABLE;
-
+    insert(np);
     release(&ptable.lock);
 
     return pid;
@@ -218,7 +275,7 @@ exit(void) {
 
     // Jump into the scheduler, never to return.
     proc->state = ZOMBIE;
-    p->etime=ticks;
+    p->etime = ticks;
     sched();
     panic("zombie exit");
 }
@@ -264,7 +321,34 @@ wait(void) {
         sleep(proc, &ptable.lock);  //DOC: wait-sleep
     }
 }
+/**
+ * Get index of high priority proccess
+ * @return index of high priority proccess in proccess table
+ */
+int getMinIndex(void){
+    struct proc *p;
+    double minScore = 9999999.999999; //set to max value
+    int indexOfProcess = -1;
+    int minIndex = 999999; //set to max value
+    double s ;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        indexOfProcess++;
+        if(p->state != RUNNABLE) {
+            continue;
+        }
 
+        s = 9999999.999999; //set to max value
+        if (ticks - p->ctime != 0)
+            s = (double )p->rtime / (double )((double )ticks - (double )p->ctime);
+        if (minScore > s) {
+            minScore = s;
+            minIndex = indexOfProcess;
+        }
+        minIndex = indexOfProcess;
+    }
+
+    return minIndex;
+}
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -275,36 +359,85 @@ wait(void) {
 //      via swtch back to the scheduler.
 void
 scheduler(void) {
-    struct proc *p;
-
+    int index = 0;
     for (;;) {
         // Enable interrupts on this processor.
         sti();
+        index = index % QUANTA;
+        if (index == 0) {
+            // Loop over process table looking for process to run.
+            if (policy == 1) { //for FRR policy
+                struct proc *p;
+                acquire(&ptable.lock);
+                if(isEmpty()==0) {
+                    p = removeData();
+                    proc = p;
+                    switchuvm(p);
+                    p->state = RUNNING;
+                    swtch(&cpu->scheduler, p->context);
+                    switchkvm();
+                    proc = 0;
+                }
+                release(&ptable.lock);
+            } else if (policy == 2) { //for GRT policy
+                struct proc *p;
+                int indexOfProcess;
+                int minIndex;
 
-        // Loop over process table looking for process to run.
-        acquire(&ptable.lock);
-        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-            if (p->state != RUNNABLE)
-                continue;
+                acquire(&ptable.lock);
+                minIndex = getMinIndex();
+                indexOfProcess = -1;
+                for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+                    indexOfProcess++;
+                    if (p->state != RUNNABLE || indexOfProcess != minIndex)
+                        continue;
+                    else {
+                        // minP = &ptable.proc[minIndex];
+                        // Switch to chosen process.  It is the process's job
+                        // to release ptable.lock and then reacquire it
+                        // before jumping back to us.
+                        proc = p;
+                        switchuvm(p);
+                        p->state = RUNNING;
+                        swtch(&cpu->scheduler, p->context);
+                        switchkvm();
+                        // Process is done running for now.
+                        // It should have changed its p->state before coming back.
+                        proc = 0;
+                        minIndex = getMinIndex();
+                        indexOfProcess = -1;
+                        p = ptable.proc;
+                    }
+                }
+                release(&ptable.lock);
+            } else if (policy == 3) { //  for 3Q policy
 
-            // Switch to chosen process.  It is the process's job
-            // to release ptable.lock and then reacquire it
-            // before jumping back to us.
-            proc = p;
-            switchuvm(p);
-            p->state = RUNNING;
-            swtch(&cpu->scheduler, p->context);
-            switchkvm();
+            } else {
+                struct proc *p;
+                acquire(&ptable.lock);
+                for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+                    if (p->state != RUNNABLE)
+                        continue;
 
-            // Process is done running for now.
-            // It should have changed its p->state before coming back.
-            proc = 0;
+                    // Switch to chosen process.  It is the process's job
+                    // to release ptable.lock and then reacquire it
+                    // before jumping back to us.
+                    proc = p;
+                    switchuvm(p);
+                    p->state = RUNNING;
+                    swtch(&cpu->scheduler, p->context);
+                    switchkvm();
+
+                    // Process is done running for now.
+                    // It should have changed its p->state before coming back.
+                    proc = 0;
+                }
+                release(&ptable.lock);
+            }
         }
-        release(&ptable.lock);
-
+        index++;
     }
 }
-
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this
@@ -334,6 +467,7 @@ void
 yield(void) {
     acquire(&ptable.lock);  //DOC: yieldlock
     proc->state = RUNNABLE;
+    insert(proc);
     sched();
     release(&ptable.lock);
 }
@@ -402,8 +536,10 @@ wakeup1(void *chan) {
     struct proc *p;
 
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-        if (p->state == SLEEPING && p->chan == chan)
+        if (p->state == SLEEPING && p->chan == chan) {
             p->state = RUNNABLE;
+            insert(p);
+        }
 }
 
 // Wake up all processes sleeping on chan.
@@ -426,8 +562,10 @@ kill(int pid) {
         if (p->pid == pid) {
             p->killed = 1;
             // Wake process from sleep if necessary.
-            if (p->state == SLEEPING)
+            if (p->state == SLEEPING) {
                 p->state = RUNNABLE;
+                insert(p);
+            }
             release(&ptable.lock);
             return 0;
         }
