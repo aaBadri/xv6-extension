@@ -265,6 +265,31 @@ wait(void) {
     }
 }
 
+int getMinIndex(void){
+    struct proc *p;
+//                struct proc *minP;
+    double minScore = 9999999.999999; //set to max value
+    int indexOfProcess = -1;
+    int minIndex = 999999;
+    double s ;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        indexOfProcess++;
+        if(p->state != RUNNABLE) {
+            continue;
+        }
+
+        s = 9999999.999999;
+        if (ticks - p->ctime != 0)
+            s = (double )p->rtime / (double )((double )ticks - (double )p->ctime);
+        if (minScore > s) {
+            minScore = s;
+            minIndex = indexOfProcess;
+        }
+        minIndex = indexOfProcess;
+    }
+
+    return minIndex;
+}
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -286,47 +311,33 @@ scheduler(void) {
 
             } else if (policy == 2) { //for GRT policy
                 struct proc *p;
-//                struct proc *minP;
-                double minScore = 9999999.999999; //set to max value
-                int indexOfProcess = -1;
-                int minIndex = 999999;
-                double s ;
+                int indexOfProcess;
+                int minIndex;
 
                 acquire(&ptable.lock);
-                for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-                    indexOfProcess++;
-                    if(p->state != RUNNABLE) {
-                        continue;
-                    }
-
-                    s = 9999999.999999;
-                    if (ticks - p->ctime != 0)
-                        s = (double )p->rtime / (double )((double )ticks - (double )p->ctime);
-                    if (minScore > s) {
-                        minScore = s;
-                        minIndex = indexOfProcess;
-                    }
-                    minIndex = indexOfProcess;
-                }
+                minIndex = getMinIndex();
                 indexOfProcess = -1;
                 for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
                     indexOfProcess++;
                     if (p->state != RUNNABLE || indexOfProcess != minIndex)
                         continue;
-
-                    // minP = &ptable.proc[minIndex];
-                    // Switch to chosen process.  It is the process's job
-                    // to release ptable.lock and then reacquire it
-                    // before jumping back to us.
-                    proc = p;
-                    switchuvm(p);
-                    p->state = RUNNING;
-                    swtch(&cpu->scheduler, p->context);
-                    switchkvm();
-                    // Process is done running for now.
-                    // It should have changed its p->state before coming back.
-                    proc = 0;
-
+                    else {
+                        // minP = &ptable.proc[minIndex];
+                        // Switch to chosen process.  It is the process's job
+                        // to release ptable.lock and then reacquire it
+                        // before jumping back to us.
+                        proc = p;
+                        switchuvm(p);
+                        p->state = RUNNING;
+                        swtch(&cpu->scheduler, p->context);
+                        switchkvm();
+                        // Process is done running for now.
+                        // It should have changed its p->state before coming back.
+                        proc = 0;
+                        minIndex = getMinIndex();
+                        indexOfProcess = -1;
+                        p = ptable.proc;
+                    }
                 }
                 release(&ptable.lock);
             } else if (policy == 3) { //  for 3Q policy
@@ -357,7 +368,6 @@ scheduler(void) {
         index++;
     }
 }
-
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this
