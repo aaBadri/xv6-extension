@@ -84,9 +84,6 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/home/aliakbarbadri/Projects/C/xv6-extension/queue.h">
-			<Option target="xv6_extension"/>
-		</Unit>
 		<Unit filename="/home/aliakbarbadri/Projects/C/xv6-extension/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>

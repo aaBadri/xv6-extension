@@ -1,5 +1,14 @@
 /home/aliakbarbadri/app/clion-2016.2.3/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/aliakbarbadri/Projects/C/xv6-extension
 -- Configuring done
+CMake Error at CMakeLists.txt:7 (add_executable):
+  Cannot find source file:
+
+    queue.h
+
+  Tried extensions .c .C .c++ .cc .cpp .cxx .m .M .mm .h .hh .h++ .hm .hpp
+  .hxx .in .txx
+
+
 CMake Error: CMake can not determine linker language for target: xv6_extension
 CMake Error: Cannot determine link language for target "xv6_extension".
 -- Generating done
