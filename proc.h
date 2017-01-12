@@ -51,7 +51,7 @@ enum procstate {
 };
 
 // Per-process state
-struct proc {
+struct proc{
     uint sz;                     // Size of process memory (bytes)
     pde_t *pgdir;                // Page table
     char *kstack;                // Bottom of kernel stack for this process
@@ -68,7 +68,7 @@ struct proc {
     int ctime;                    //Time of process creation
     int etime;                    //Time of process termination
     int rtime;                    //Time of process running
-    double priority;
+    int priority;
 };
 
 // Process memory is laid out contiguously, low addresses first:

@@ -44,14 +44,24 @@ sys_getppid(void) {
 
 int
 sys_getPerformanceData(void) {
-    char *wtime = 0 , *rtime = 0;
-    argptr(0 , &wtime , sizeof(int));
-    argptr(1 , &rtime , sizeof(int));
+    char *wtime = 0, *rtime = 0;
+    argptr(0, &wtime, sizeof(int));
+    argptr(1, &rtime, sizeof(int));
 
     *wtime = (proc->etime - proc->ctime) - proc->rtime;
     *rtime = proc->rtime;
 
     return 0;
+}
+
+int
+sys_nice() {
+    if (proc->priority > 0) {
+        (proc->priority)--;
+
+        return 0;
+    } else
+        return -1;
 }
 
 int

@@ -92,6 +92,8 @@ extern int sys_getppid(void);
 
 extern int sys_getPerformanceData(void);
 
+extern int sys_nice(void);
+
 extern int sys_kill(void);
 
 extern int sys_link(void);
@@ -142,6 +144,7 @@ static int (*syscalls[])(void) = {
         [SYS_mkdir]   sys_mkdir,
         [SYS_close]   sys_close,
         [SYS_getPerformanceData] sys_getPerformanceData,
+        [SYS_nice] sys_nice,
 };
 
 void

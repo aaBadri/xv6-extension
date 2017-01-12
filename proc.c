@@ -67,6 +67,135 @@ struct proc *removeData() {
     return data;
 }
 
+/*
+ 3queue implementation
+ */
+
+struct proc *Q0[NPROC];
+int front0 = 0;
+int rear0 = -1;
+int itemCount0 = 0;
+struct proc *Q1[NPROC];
+int front1 = 0;
+int rear1 = -1;
+int itemCount1 = 0;
+struct proc *Q2[NPROC];
+int front2 = 0;
+int rear2 = -1;
+int itemCount2 = 0;
+
+int isEmptyQ(int priority) {
+    int e = 0;
+    /* // if (priority == 0) {
+          if (itemCount0 == 0)
+              e = 1;
+          else
+              e = 0;
+      } else if (priority == 1) {
+          if (itemCount1 == 0)
+              e = 1;
+          else
+              e = 0;
+      } else {//
+      if (priority == 2) {*/
+    if (itemCount2 == 0)
+        e = 1;
+    else
+        e = 0;
+    // }
+    return e;
+}
+
+int isFullQ(int priority) {
+    int f = 0;
+    /*// if (priority == 0) {
+         if (itemCount0 == NPROC)
+             f = 1;
+         else
+             f = 0;
+     } else if (priority == 1) {
+         if (itemCount1 == NPROC)
+             f = 1;
+         else
+             f = 0;
+     } else {//*/
+    if (priority == 2) {
+        if (itemCount2 == NPROC)
+            f = 1;
+        else
+            f = 0;
+    }
+    return f;
+}
+
+void insertQ(struct proc *data, int priority) {
+    if (data && data->state == RUNNABLE) {
+        //  if (priority == 0) {
+        /*   if (isFullQ(priority) == 0) {
+
+               if (rear0 == NPROC - 1) {
+                   rear0 = -1;
+               }
+
+               Q0[++rear0] = data;
+               itemCount0++;
+           }
+       } else if (priority == 1) {
+           if (isFullQ(priority) == 0) {
+
+               if (rear1 == NPROC - 1) {
+                   rear1 = -1;
+               }
+
+               Q1[++rear1] = data;
+               itemCount1++;
+           }
+       } else */
+        if (priority == 2) {
+            if (isFullQ(priority) == 0) {
+
+                if (rear2 == NPROC - 1) {
+                    rear2 = -1;
+                }
+
+                Q2[++rear2] = data;
+                itemCount2++;
+            }
+        }
+    }
+}
+
+struct proc *removeDataQ(int priority) {
+    struct proc *data = 0;
+    //if (priority == 0) {
+    /*     data = Q0[front0++];
+
+         if (front0 == NPROC) {
+             front0 = 0;
+         }
+
+         itemCount0--;
+     } else if (priority == 1) {
+         data = Q1[front1++];
+
+         if (front1 == NPROC) {
+             front1 = 0;
+         }
+
+         itemCount1--;
+     } else {//}*/
+    if (priority == 2) {
+        data = Q2[front2++];
+
+        if (front2 == NPROC) {
+            front2 = 0;
+        }
+
+        itemCount2--;
+    }
+    return data;
+
+}
 
 static struct proc *initproc;
 
@@ -104,6 +233,7 @@ allocproc(void) {
     found:
     p->state = EMBRYO;
     p->rtime = 0;
+    p->priority = 2;
     p->ctime = ticks;
     p->pid = nextpid++;
 
@@ -166,7 +296,14 @@ userinit(void) {
     acquire(&ptable.lock);
 
     p->state = RUNNABLE;
-    insert(p);
+    if (policy == 1)
+        insert(p);
+    else if (policy == 3) {
+        if (p->priority && p->state == RUNNABLE) {
+            insertQ(p, p->priority);
+        }
+        //TODO 3Q
+    }
 
     release(&ptable.lock);
 }
@@ -223,13 +360,21 @@ fork(void) {
     np->cwd = idup(proc->cwd);
 
     safestrcpy(np->name, proc->name, sizeof(proc->name));
-
     pid = np->pid;
 
     acquire(&ptable.lock);
 
     np->state = RUNNABLE;
-    insert(np);
+
+    if (policy == 1)
+        insert(np);
+    else if (policy == 3) {
+        if (np->priority && np->state == RUNNABLE) {
+            insertQ(np, np->priority);
+        }
+        //TODO 3Q
+    }
+    // insert(np);
     release(&ptable.lock);
 
     return pid;
@@ -321,25 +466,26 @@ wait(void) {
         sleep(proc, &ptable.lock);  //DOC: wait-sleep
     }
 }
+
 /**
  * Get index of high priority proccess
  * @return index of high priority proccess in proccess table
  */
-int getMinIndex(void){
+int getMinIndex(void) {
     struct proc *p;
     double minScore = 9999999.999999; //set to max value
     int indexOfProcess = -1;
     int minIndex = 999999; //set to max value
-    double s ;
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    double s;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         indexOfProcess++;
-        if(p->state != RUNNABLE) {
+        if (p->state != RUNNABLE) {
             continue;
         }
 
         s = 9999999.999999; //set to max value
         if (ticks - p->ctime != 0)
-            s = (double )p->rtime / (double )((double )ticks - (double )p->ctime);
+            s = (double) p->rtime / (double) ((double) ticks - (double) p->ctime);
         if (minScore > s) {
             minScore = s;
             minIndex = indexOfProcess;
@@ -349,6 +495,24 @@ int getMinIndex(void){
 
     return minIndex;
 }
+
+/**
+ * add runnable processes to runnableQ
+ *//*
+void addToRunnableQ() {
+    struct proc *p;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->state == RUNNABLE) {
+            if (policy == 1)
+                insert(p);
+            else if (policy == 3) {
+                insertQ(p, p->priority);
+                //TODO 3Q
+            }
+        }
+    }
+}*/
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -368,8 +532,10 @@ scheduler(void) {
             // Loop over process table looking for process to run.
             if (policy == 1) { //for FRR policy
                 struct proc *p;
+
                 acquire(&ptable.lock);
-                if(isEmpty()==0) {
+                // addToRunnableQ();
+                if (isEmpty() == 0) {
                     p = removeData();
                     proc = p;
                     switchuvm(p);
@@ -379,6 +545,7 @@ scheduler(void) {
                     proc = 0;
                 }
                 release(&ptable.lock);
+
             } else if (policy == 2) { //for GRT policy
                 struct proc *p;
                 int indexOfProcess;
@@ -411,7 +578,38 @@ scheduler(void) {
                 }
                 release(&ptable.lock);
             } else if (policy == 3) { //  for 3Q policy
-
+                struct proc *p;
+                acquire(&ptable.lock);
+                if (isEmptyQ(2) == 0) {
+                    p = removeDataQ(0);
+                    proc = p;
+                    switchuvm(p);
+                    p->state = RUNNING;
+                    swtch(&cpu->scheduler, p->context);
+                    switchkvm();
+                    proc = 0;
+                } /*else {
+                    if (isEmptyQ(1) == 0) {
+                        p = removeDataQ(1);
+                        proc = p;
+                        switchuvm(p);
+                        p->state = RUNNING;
+                        swtch(&cpu->scheduler, p->context);
+                        switchkvm();
+                        proc = 0;
+                    } else {
+                        if (isEmptyQ(2) == 0) {
+                            p = removeDataQ(2);
+                            proc = p;
+                            switchuvm(p);
+                            p->state = RUNNING;
+                            swtch(&cpu->scheduler, p->context);
+                            switchkvm();
+                            proc = 0;
+                        }
+                    }
+                }*/
+                release(&ptable.lock);
             } else {
                 struct proc *p;
                 acquire(&ptable.lock);
@@ -438,6 +636,7 @@ scheduler(void) {
         index++;
     }
 }
+
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this
@@ -467,7 +666,14 @@ void
 yield(void) {
     acquire(&ptable.lock);  //DOC: yieldlock
     proc->state = RUNNABLE;
-    insert(proc);
+    if (policy == 1)
+        insert(proc);
+    else if (policy == 3) {
+        if (proc->priority && proc->state == RUNNABLE) {
+            insertQ(proc, proc->priority);
+        }
+        //TODO 3Q
+    }
     sched();
     release(&ptable.lock);
 }
@@ -538,7 +744,14 @@ wakeup1(void *chan) {
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
         if (p->state == SLEEPING && p->chan == chan) {
             p->state = RUNNABLE;
-            insert(p);
+            if (policy == 1)
+                insert(p);
+            else if (policy == 3) {
+                if (p->priority && p->state == RUNNABLE) {
+                    insertQ(p, p->priority);
+                }
+                //TODO 3Q
+            }
         }
 }
 
@@ -564,7 +777,14 @@ kill(int pid) {
             // Wake process from sleep if necessary.
             if (p->state == SLEEPING) {
                 p->state = RUNNABLE;
-                insert(p);
+                if (policy == 1)
+                    insert(p);
+                else if (policy == 3) {
+                    if (p->priority && p->state == RUNNABLE) {
+                        insertQ(p, p->priority);
+                    }
+                    //TODO 3Q
+                }
             }
             release(&ptable.lock);
             return 0;

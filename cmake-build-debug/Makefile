@@ -123,33 +123,6 @@ xv6_extension/fast:
 	$(MAKE) -f CMakeFiles/xv6_extension.dir/build.make CMakeFiles/xv6_extension.dir/build
 .PHONY : xv6_extension/fast
 
-print_ppid.o: print_ppid.c.o
-
-.PHONY : print_ppid.o
-
-# target to build an object file
-print_ppid.c.o:
-	$(MAKE) -f CMakeFiles/xv6_extension.dir/build.make CMakeFiles/xv6_extension.dir/print_ppid.c.o
-.PHONY : print_ppid.c.o
-
-print_ppid.i: print_ppid.c.i
-
-.PHONY : print_ppid.i
-
-# target to preprocess a source file
-print_ppid.c.i:
-	$(MAKE) -f CMakeFiles/xv6_extension.dir/build.make CMakeFiles/xv6_extension.dir/print_ppid.c.i
-.PHONY : print_ppid.c.i
-
-print_ppid.s: print_ppid.c.s
-
-.PHONY : print_ppid.s
-
-# target to generate assembly for a file
-print_ppid.c.s:
-	$(MAKE) -f CMakeFiles/xv6_extension.dir/build.make CMakeFiles/xv6_extension.dir/print_ppid.c.s
-.PHONY : print_ppid.c.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -159,9 +132,6 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... xv6_extension"
-	@echo "... print_ppid.o"
-	@echo "... print_ppid.i"
-	@echo "... print_ppid.s"
 .PHONY : help
 
 
