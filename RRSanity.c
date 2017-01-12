@@ -18,7 +18,7 @@ int main(void) {
             exit();
         } else if (childPid[i] == 0) {
             int pid = getpid();
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 1000; i++) {
                 printf(1, "Child %d prints for the %d time\n", pid, i);
             }
             exit();
