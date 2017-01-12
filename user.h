@@ -34,7 +34,11 @@ int mkdir(char *);
 
 int chdir(char *);
 
+<<<<<<< 2688e1df8d796ed09255902bc723987736c3e7f1
 int getPerformanceData(int *, int *);
+=======
+int wait2(int *, int *);
+>>>>>>> Implements RRSanity test
 
 int dup(int);
 
@@ -42,8 +46,11 @@ int getpid(void);
 
 int getppid(void);
 
+<<<<<<< 2688e1df8d796ed09255902bc723987736c3e7f1
 int nice(void);
 
+=======
+>>>>>>> Implements RRSanity test
 char *sbrk(int);
 
 int sleep(int);

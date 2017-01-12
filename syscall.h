@@ -21,5 +21,9 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 #define SYS_getppid 22
+<<<<<<< 2688e1df8d796ed09255902bc723987736c3e7f1
 #define SYS_getPerformanceData 23
 #define SYS_nice 24
+=======
+#define SYS_wait2 23
+>>>>>>> Implements RRSanity test

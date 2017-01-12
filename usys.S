@@ -30,7 +30,11 @@ SYSCALL(getppid)
 SYSCALL(sbrk)
 SYSCALL(sleep)
 SYSCALL(uptime)
+<<<<<<< 2688e1df8d796ed09255902bc723987736c3e7f1
 SYSCALL(getPerformanceData)
 SYSCALL(nice)
+=======
+SYSCALL(wait2)
+>>>>>>> Implements RRSanity test
 
 

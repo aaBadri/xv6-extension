@@ -90,7 +90,7 @@ extern int sys_getpid(void);
 
 extern int sys_getppid(void);
 
-extern int sys_getPerformanceData(void);
+extern int sys_wait2(void);
 
 extern int sys_nice(void);
 
@@ -143,8 +143,12 @@ static int (*syscalls[])(void) = {
         [SYS_link]    sys_link,
         [SYS_mkdir]   sys_mkdir,
         [SYS_close]   sys_close,
+<<<<<<< 2688e1df8d796ed09255902bc723987736c3e7f1
         [SYS_getPerformanceData] sys_getPerformanceData,
         [SYS_nice] sys_nice,
+=======
+        [SYS_wait2] sys_wait2,
+>>>>>>> Implements RRSanity test
 };
 
 void

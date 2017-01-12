@@ -49,6 +49,7 @@ void waitpid(void){
 }
 
 int
+<<<<<<< 2688e1df8d796ed09255902bc723987736c3e7f1
 sys_getPerformanceData(void) {
     char *wtime = 0, *rtime = 0;
     argptr(0, &wtime, sizeof(int));
@@ -58,6 +59,10 @@ sys_getPerformanceData(void) {
     *rtime = proc->rtime;
 
     return 0;
+=======
+sys_wait2(void) {
+    return wait2();
+>>>>>>> Implements RRSanity test
 }
 
 int

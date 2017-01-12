@@ -40,7 +40,7 @@ waittest(void) {
         foo();
         exit();
     }
-    getPerformanceData(&wTime, &rTime);
+    wait2(&wTime, &rTime);
     printf(1, "hi \n");
     printf(1, "wTime: %d rTime: %d \n", wTime, rTime);
 
