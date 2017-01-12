@@ -17,7 +17,6 @@ int main(void) {
             printf(1, "fork failed\n");
             exit();
         } else if (childPid[i] == 0) {
-            int pid = getpid();
             for (int i = 0; i < 1000; i++) {
 
             }
@@ -29,9 +28,7 @@ int main(void) {
 
 
     for (int i = 0; i < 10; i++) {
-
         wait();
-
     }
     exit();
 }
