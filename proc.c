@@ -7,10 +7,66 @@
 #include "proc.h"
 #include "spinlock.h"
 
+
 struct {
     struct spinlock lock;
     struct proc proc[NPROC];
 } ptable;
+
+/*
+ queue implementation
+ */
+struct proc *runnableQ[NPROC];
+int front = 0;
+int rear = -1;
+int itemCount = 0;
+
+struct proc *peek() {
+    return runnableQ[front];
+}
+
+int isEmpty() {
+    if (itemCount == 0)
+        return 1;
+    else
+        return 0;
+}
+
+int isFull() {
+    if (itemCount == NPROC)
+        return 1;
+    else
+        return 0;
+}
+
+int size() {
+    return itemCount;
+}
+
+void insert(struct proc *data) {
+
+    if (isFull() == 0) {
+
+        if (rear == NPROC - 1) {
+            rear = -1;
+        }
+
+        runnableQ[++rear] = data;
+        itemCount++;
+    }
+}
+
+struct proc *removeData() {
+    struct proc *data = runnableQ[front++];
+
+    if (front == NPROC) {
+        front = 0;
+    }
+
+    itemCount--;
+    return data;
+}
+
 
 static struct proc *initproc;
 
@@ -110,6 +166,7 @@ userinit(void) {
     acquire(&ptable.lock);
 
     p->state = RUNNABLE;
+    insert(p);
 
     release(&ptable.lock);
 }
@@ -172,7 +229,7 @@ fork(void) {
     acquire(&ptable.lock);
 
     np->state = RUNNABLE;
-
+    insert(np);
     release(&ptable.lock);
 
     return pid;
@@ -283,25 +340,36 @@ scheduler(void) {
         if (index == 0) {
             // Loop over process table looking for process to run.
             if (policy == 1) { //for FRR policy
-
+                struct proc *p;
+                acquire(&ptable.lock);
+                if(isEmpty()==0) {
+                    p = removeData();
+                    proc = p;
+                    switchuvm(p);
+                    p->state = RUNNING;
+                    swtch(&cpu->scheduler, p->context);
+                    switchkvm();
+                    proc = 0;
+                }
+                release(&ptable.lock);
             } else if (policy == 2) { //for GRT policy
                 struct proc *p;
 //                struct proc *minP;
                 double minScore = 9999999.999999; //set to max value
                 int indexOfProcess = -1;
                 int minIndex = 999999;
-                double s ;
+                double s;
 
                 acquire(&ptable.lock);
-                for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+                for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
                     indexOfProcess++;
-                    if(p->state != RUNNABLE) {
+                    if (p->state != RUNNABLE) {
                         continue;
                     }
 
                     s = 9999999.999999;
                     if (ticks - p->ctime != 0)
-                        s = (double )p->rtime / (double )((double )ticks - (double )p->ctime);
+                        s = (double) p->rtime / (double) ((double) ticks - (double) p->ctime);
                     if (minScore > s) {
                         minScore = s;
                         minIndex = indexOfProcess;
@@ -387,6 +455,7 @@ void
 yield(void) {
     acquire(&ptable.lock);  //DOC: yieldlock
     proc->state = RUNNABLE;
+    insert(proc);
     sched();
     release(&ptable.lock);
 }
@@ -455,8 +524,10 @@ wakeup1(void *chan) {
     struct proc *p;
 
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-        if (p->state == SLEEPING && p->chan == chan)
+        if (p->state == SLEEPING && p->chan == chan) {
             p->state = RUNNABLE;
+            insert(p);
+        }
 }
 
 // Wake up all processes sleeping on chan.
@@ -479,8 +550,10 @@ kill(int pid) {
         if (p->pid == pid) {
             p->killed = 1;
             // Wake process from sleep if necessary.
-            if (p->state == SLEEPING)
+            if (p->state == SLEEPING) {
                 p->state = RUNNABLE;
+                insert(p);
+            }
             release(&ptable.lock);
             return 0;
         }
