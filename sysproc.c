@@ -42,6 +42,12 @@ sys_getppid(void) {
     return proc->parent->pid;
 }
 
+void waitpid(void){
+    int childPid;
+    argint(0 , &childPid);
+
+}
+
 int
 sys_getPerformanceData(void) {
     char *wtime = 0, *rtime = 0;
