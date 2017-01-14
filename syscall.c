@@ -123,6 +123,10 @@ extern int sys_write(void);
 
 extern int sys_uptime(void);
 
+extern int sys_wait_semaphore(void);
+
+extern int sys_signal_semaphore(void);
+
 static int (*syscalls[])(void) = {
         [SYS_fork]    sys_fork,
         [SYS_exit]    sys_exit,
@@ -149,6 +153,8 @@ static int (*syscalls[])(void) = {
         [SYS_nice] sys_nice,
         [SYS_wait2] sys_wait2,
         [SYS_niceTwo] sys_niceTwo,
+        [SYS_wait_semaphore] sys_wait_semaphore,
+        [SYS_signal_semaphore] sys_signal_semaphore,
 };
 
 void

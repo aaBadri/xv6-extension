@@ -36,6 +36,10 @@ int chdir(char *);
 
 int wait2(int *, int *);
 
+int wait_semaphore();
+
+int signal_semaphore();
+
 int dup(int);
 
 int getpid(void);

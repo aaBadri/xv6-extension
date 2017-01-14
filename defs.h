@@ -115,6 +115,8 @@ void            sleep(void*, struct spinlock*);
 void            userinit(void);
 int             wait(void);
 int             wait2(void);
+void            wait_semaphore(void);
+void            signal_semaphore(void);
 void            wakeup(void*);
 void            yield(void);
 
@@ -126,6 +128,7 @@ void            acquire(struct spinlock*);
 void            getcallerpcs(void*, uint*);
 int             holding(struct spinlock*);
 void            initlock(struct spinlock*, char*);
+void            initmylock(struct spinlock*, char*);
 void            release(struct spinlock*);
 void            pushcli(void);
 void            popcli(void);

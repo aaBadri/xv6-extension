@@ -54,11 +54,22 @@ sys_wait2(void) {
 }
 
 int
+sys_wait_semaphore(void){
+    wait_semaphore();
+    return 0;
+}
+
+int
+sys_signal_semaphore(void){
+    signal_semaphore();
+    return 0;
+}
+
+int
 sys_nice() {
 
     //cprintf("in nice syscall , priority is : %d\n" , proc->priority);
     if (proc && proc->priority > 0) {
-        cprintf("pid: %d, priority:%d , state:%d\n", proc->pid, proc->priority , proc->state);
         (proc->priority)--;
         return 0;
     } else
@@ -70,7 +81,6 @@ sys_niceTwo() {
 
     //cprintf("in nice syscall , priority is : %d\n" , proc->priority);
     if (proc && proc->priority > 0) {
-        cprintf("pid: %d, priority:%d , state:%d\n", proc->pid, proc->priority , proc->state);
         (proc->priority) = proc->priority - 2;
         return 0;
     } else

@@ -24,3 +24,5 @@
 #define SYS_wait2 23
 #define SYS_nice 24
 #define SYS_niceTwo 25
+#define SYS_wait_semaphore 26
+#define SYS_signal_semaphore 27

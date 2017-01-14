@@ -13,6 +13,7 @@ struct {
     struct proc proc[NPROC];
 } ptable;
 struct spinlock mutex;
+struct spinlock mutexSemaphore;
 /*
  queue implementation
  */
@@ -265,11 +266,22 @@ allocproc(void) {
     return p;
 }
 
+
+void
+wait_semaphore(void){
+    acquire(&mutexSemaphore);
+}
+
+void
+signal_semaphore(void){
+    release(&mutexSemaphore);
+}
 //PAGEBREAK: 32
 // Set up first user process.
 void
 userinit(void) {
     initlock(&mutex , "salama");
+    initmylock(&mutexSemaphore , "mutex");
 
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
@@ -568,14 +580,20 @@ void printQ() {
     cprintf("content of Q : < ");
     for (int i = front; i <= rear; i++) {
         if( i < rear ) {
+            acquire(&mutexSemaphore);
             cprintf("%d , ", runnableQ[i]->pid);
+            release(&mutexSemaphore);
         }else{
+            acquire(&mutexSemaphore);
             cprintf("%d >", runnableQ[i]->pid);
+            release(&mutexSemaphore);
         }
 
     }
 
+    acquire(&mutexSemaphore);
     cprintf("\n");
+    release(&mutexSemaphore);
 }
 
 //PAGEBREAK: 42

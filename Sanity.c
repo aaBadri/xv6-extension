@@ -29,7 +29,9 @@ int main(void) {
     for (int i = 0; i < numOfChild; i++) {
         childPid[i] = fork();
         if (childPid[i] < 0) {
+//            wait_semaphore();
             printf(1, "fork failed\n");
+//            signal_semaphore();
             exit();
         } else if (childPid[i] == 0) {
             switch (i % 3) {
@@ -41,7 +43,9 @@ int main(void) {
                     break;
             }
             for (long j = 0; j < 1000; j++) {
+//                wait_semaphore();
                 printf(1, "cid : %d\n", i);
+//                signal_semaphore();
             }
             exit();
         } else if (childPid[i] > 0) {
@@ -85,12 +89,15 @@ int main(void) {
 
         sumOfRtime += rtime;
         sumOfWtime += wtime;
+//        wait_semaphore();
         printf(1, "child %d : \n", cid);
         printf(1, "wtime : %d , rtime : %d , turnaround time : %d\n\n", wtime, rtime, wtime + rtime);
+//        signal_semaphore();
     }
 
 
     //double average1 = (double) sumOfWtime /  numOfChild ;
+//    wait_semaphore();
     printf(1, "Average waiting time for all children : %d \n", sumOfWtime / numOfChild);
     printf(1, "Average turnaround time for all children : %d \n",
            (sumOfWtime + sumOfRtime) / numOfChild);
@@ -103,6 +110,7 @@ int main(void) {
 //    printf(1, "Average waiting time for queue 3 children : %d \n",  sumOfWtimeQ3 /  numOfChild);
 //    printf(1, "Average turnaround time for queue 3 children : %d \n",
 //           (sumOfWtimeQ3 + sumOfRtimeQ3) / numOfChild);
+//    signal_semaphore();
 
     exit();
 }

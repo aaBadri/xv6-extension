@@ -33,5 +33,7 @@ SYSCALL(uptime)
 SYSCALL(nice)
 SYSCALL(wait2)
         SYSCALL(niceTwo)
+                SYSCALL(wait_semaphore)
+                        SYSCALL(signal_semaphore)
 
 
