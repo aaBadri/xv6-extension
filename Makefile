@@ -175,6 +175,7 @@ UPROGS=\
 	_zombie\
 	_GSanity\
 	_RRSanity\
+	_Sanity\
 	_FRRTest\
 	_waittest\
 	_print_ppid\
@@ -246,7 +247,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 
 EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
-	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c waittest.c GSanity.c FRRTest.c RRSanity.c zombie.c print_ppid.c\
+	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c waittest.c GSanity.c FRRTest.c Sanity.c RRSanity.c zombie.c print_ppid.c\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\

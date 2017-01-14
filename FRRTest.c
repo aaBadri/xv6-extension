@@ -19,7 +19,7 @@ int main(void) {
             printf(1, "fork failed\n");
             exit();
         } else if (childPid[i] == 0) {
-            for (int i = 0; i < 1000; i++) {
+            for (int j = 0; j < 1000; j++) {
 
             }
             exit();
