@@ -56,7 +56,8 @@ sys_getPerformanceData(void) {
 
 int
 sys_nice() {
-    if (proc->priority > 0) {
+
+    if (proc && proc->priority > 0) {
         (proc->priority)--;
 
         return 0;
