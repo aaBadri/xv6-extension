@@ -1,1 +1,0 @@
-/usr/bin/cc  -g   CMakeFiles/xv6_extension.dir/print_ppid.c.o  -o xv6_extension -ltime -lfeatures -lcdefs 
