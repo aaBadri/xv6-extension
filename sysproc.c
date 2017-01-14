@@ -42,16 +42,15 @@ sys_getppid(void) {
     return proc->parent->pid;
 }
 
+void waitpid(void){
+    int childPid;
+    argint(0 , &childPid);
+
+}
+
 int
-sys_getPerformanceData(void) {
-    char *wtime = 0, *rtime = 0;
-    argptr(0, &wtime, sizeof(int));
-    argptr(1, &rtime, sizeof(int));
-
-    *wtime = (proc->etime - proc->ctime) - proc->rtime;
-    *rtime = proc->rtime;
-
-    return 0;
+sys_wait2(void) {
+    return wait2();
 }
 
 int

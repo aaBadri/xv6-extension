@@ -34,7 +34,7 @@ int mkdir(char *);
 
 int chdir(char *);
 
-int getPerformanceData(int *, int *);
+int wait2(int *, int *);
 
 int dup(int);
 
