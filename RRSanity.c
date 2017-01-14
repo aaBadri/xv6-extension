@@ -18,8 +18,8 @@ int main(void) {
             exit();
         } else if (childPid[i] == 0) {
             int pid = getpid();
-            for (int i = 0; i < 1000; i++) {
-                printf(1, "Child %d prints for the %d time\n", pid, i);
+            for (int j = 0; j < 1000; j++) {
+                printf(1, "Child %d prints for the %d time\n", pid, j);
             }
             exit();
         } else if (childPid[i] > 0) {

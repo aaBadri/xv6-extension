@@ -12,7 +12,7 @@ struct {
     struct spinlock lock;
     struct proc proc[NPROC];
 } ptable;
-
+struct spinlock mutex;
 /*
  queue implementation
  */
@@ -96,7 +96,7 @@ int isEmptyQ(int priority) {
             e = 1;
         else
             e = 0;
-    } else {//if (priority == 2) {
+    } else if (priority == 2) {
         if (itemCount2 == 0)
             e = 1;
         else
@@ -117,7 +117,7 @@ int isFullQ(int priority) {
             f = 1;
         else
             f = 0;
-    } else {//if (priority == 2) {
+    } else if (priority == 2) {
         if (itemCount2 == NPROC)
             f = 1;
         else
@@ -128,6 +128,7 @@ int isFullQ(int priority) {
 }
 
 void insertQ(struct proc *data, int priority) {
+    acquire(&mutex);
     if (data && data->state == RUNNABLE) {
         if (priority == 0) {
             if (isFullQ(priority) == 0) {
@@ -162,9 +163,11 @@ void insertQ(struct proc *data, int priority) {
             }
         }
     }
+    release(&mutex);
 }
 
 struct proc *removeDataQ(int priority) {
+    acquire(&mutex);
     struct proc *data = 0;
     if (priority == 0) {
         data = Q0[front0++];
@@ -182,7 +185,7 @@ struct proc *removeDataQ(int priority) {
         }
 
         itemCount1--;
-    } else {//}*/if (priority == 2) {
+    } else if (priority == 2) {
         data = Q2[front2++];
 
         if (front2 == NPROC) {
@@ -191,8 +194,9 @@ struct proc *removeDataQ(int priority) {
 
         itemCount2--;
     }
-    return data;
+    release(&mutex);
 
+    return data;
 }
 
 static struct proc *initproc;
@@ -265,6 +269,8 @@ allocproc(void) {
 // Set up first user process.
 void
 userinit(void) {
+    initlock(&mutex , "salama");
+
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
 
@@ -440,6 +446,12 @@ wait2(void) {
             havekids = 1;
             if (p->state == ZOMBIE) {
                 // Found one.
+                char *wtime = 0, *rtime = 0;
+                argptr(0, &wtime, sizeof(int));
+                argptr(1, &rtime, sizeof(int));
+
+                *wtime = (p->etime - p->ctime) - p->rtime;
+                *rtime = p->rtime;
                 pid = p->pid;
                 kfree(p->kstack);
                 p->kstack = 0;
@@ -450,12 +462,6 @@ wait2(void) {
                 p->killed = 0;
                 p->state = UNUSED;
                 release(&ptable.lock);
-                char *wtime = 0, *rtime = 0;
-                argptr(0, &wtime, sizeof(int));
-                argptr(1, &rtime, sizeof(int));
-
-                *wtime = (proc->etime - proc->ctime) - proc->rtime;
-                *rtime = proc->rtime;
                 return pid;
             }
         }

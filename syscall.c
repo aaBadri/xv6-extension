@@ -94,6 +94,9 @@ extern int sys_wait2(void);
 
 extern int sys_nice(void);
 
+extern int sys_niceTwo(void);
+
+
 extern int sys_kill(void);
 
 extern int sys_link(void);
@@ -145,6 +148,7 @@ static int (*syscalls[])(void) = {
         [SYS_close]   sys_close,
         [SYS_nice] sys_nice,
         [SYS_wait2] sys_wait2,
+        [SYS_niceTwo] sys_niceTwo,
 };
 
 void

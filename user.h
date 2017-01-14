@@ -44,6 +44,8 @@ int getppid(void);
 
 int nice(void);
 
+int niceTwo(void);
+
 char *sbrk(int);
 
 int sleep(int);

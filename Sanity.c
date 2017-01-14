@@ -7,7 +7,7 @@
 
 #define numOfChild 30
 int cidPid[numOfChild];
-
+//
 int getCid(int pid){
     for( int i = 0 ; i < numOfChild ; i++ ){
         if( cidPid[i] == pid )
@@ -36,18 +36,15 @@ int main(void) {
                     nice();
                     break;
                 case 1 :
-                    nice();
-                    nice();
-                    break;
-                case 2 :
+                    niceTwo();
                     break;
             }
-            cidPid[i] = getpid();
-            for (int j = 0; j < 500; j++) {
-                printf(1, "cid : %d", j);
+            for (long j = 0; j < 10; j++) {
+                printf(1, "cid : %d\n", i);
             }
             exit();
         } else if (childPid[i] > 0) {
+            cidPid[i] = childPid[i];
             continue;
         }
     }
@@ -62,10 +59,11 @@ int main(void) {
     int sumOfWtimeQ2 = 0;
     int sumOfWtimeQ3 = 0;
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < numOfChild ; i++) {
         int wtime;
         int rtime;
 
+        printf(1 , "iiiiiiiiiiiiiiiiiiiiiii %d\n" , i);
         int pid = wait2(&wtime, &rtime);
 
         int cid = getCid(pid);
@@ -87,9 +85,10 @@ int main(void) {
 
         sumOfRtime += rtime;
         sumOfWtime += wtime;
-        printf(1, "child %d : \n", i);
+        printf(1, "child %d : \n", cid);
         printf(1, "wtime : %d , rtime : %d , turnaround time : %d\n\n", wtime, rtime, wtime + rtime);
     }
+
 
     printf(1, "Average waiting time for all children : %f\n", sumOfWtime / numOfChild);
     printf(1, "Average turnaround time for all children : %f\n", (sumOfWtime + sumOfRtime) / numOfChild);
@@ -99,5 +98,6 @@ int main(void) {
     printf(1, "Average turnaround time for queue 2 children : %f\n", (sumOfWtimeQ2 + sumOfRtimeQ2) / numOfChild);
     printf(1, "Average waiting time for queue 3 children : %f\n", sumOfWtimeQ3 / numOfChild);
     printf(1, "Average turnaround time for queue 3 children : %f\n", (sumOfWtimeQ3 + sumOfRtimeQ3) / numOfChild);
+
     exit();
 }

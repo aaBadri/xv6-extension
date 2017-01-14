@@ -56,9 +56,22 @@ sys_wait2(void) {
 int
 sys_nice() {
 
+    //cprintf("in nice syscall , priority is : %d\n" , proc->priority);
     if (proc && proc->priority > 0) {
+        cprintf("pid: %d, priority:%d , state:%d\n", proc->pid, proc->priority , proc->state);
         (proc->priority)--;
+        return 0;
+    } else
+        return -1;
+}
 
+int
+sys_niceTwo() {
+
+    //cprintf("in nice syscall , priority is : %d\n" , proc->priority);
+    if (proc && proc->priority > 0) {
+        cprintf("pid: %d, priority:%d , state:%d\n", proc->pid, proc->priority , proc->state);
+        (proc->priority) = proc->priority - 2;
         return 0;
     } else
         return -1;

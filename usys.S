@@ -32,5 +32,6 @@ SYSCALL(sleep)
 SYSCALL(uptime)
 SYSCALL(nice)
 SYSCALL(wait2)
+        SYSCALL(niceTwo)
 
 
