@@ -450,9 +450,9 @@ wait2(void) {
                 p->killed = 0;
                 p->state = UNUSED;
                 release(&ptable.lock);
-                char *wtime = 0 , *rtime = 0;
-                argptr(0 , &wtime , sizeof(int));
-                argptr(1 , &rtime , sizeof(int));
+                char *wtime = 0, *rtime = 0;
+                argptr(0, &wtime, sizeof(int));
+                argptr(1, &rtime, sizeof(int));
 
                 *wtime = (proc->etime - proc->ctime) - proc->rtime;
                 *rtime = proc->rtime;
@@ -558,6 +558,20 @@ void addToRunnableQ() {
     }
 }*/
 
+void printQ() {
+    cprintf("content of Q : < ");
+    for (int i = front; i <= rear; i++) {
+        if( i < rear ) {
+            cprintf("%d , ", runnableQ[i]->pid);
+        }else{
+            cprintf("%d >", runnableQ[i]->pid);
+        }
+
+    }
+
+    cprintf("\n");
+}
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -581,6 +595,7 @@ scheduler(void) {
                 acquire(&ptable.lock);
                 // addToRunnableQ();
                 if (isEmpty() == 0) {
+                    printQ();
                     p = removeData();
                     proc = p;
                     switchuvm(p);

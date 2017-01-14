@@ -5,13 +5,15 @@
 #include "user.h"
 
 
+#define numOfChild 10
+
 int main(void) {
-    int childPid[10];
-    for (int i = 0; i < 10; i++) {
+    int childPid[numOfChild];
+    for (int i = 0; i < numOfChild; i++) {
         childPid[i] = 0;
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < numOfChild; i++) {
         childPid[i] = fork();
         if (childPid[i] < 0) {
             printf(1, "fork failed\n");
@@ -27,7 +29,7 @@ int main(void) {
     }
 
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < numOfChild; i++) {
         wait();
     }
     exit();
