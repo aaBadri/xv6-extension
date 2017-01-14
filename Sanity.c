@@ -5,12 +5,13 @@
 #include "user.h"
 
 
-#define numOfChild 30
+#define numOfChild 5
 int cidPid[numOfChild];
+
 //
-int getCid(int pid){
-    for( int i = 0 ; i < numOfChild ; i++ ){
-        if( cidPid[i] == pid )
+int getCid(int pid) {
+    for (int i = 0; i < numOfChild; i++) {
+        if (cidPid[i] == pid)
             return i;
     }
 
@@ -59,16 +60,15 @@ int main(void) {
     int sumOfWtimeQ2 = 0;
     int sumOfWtimeQ3 = 0;
 
-    for (int i = 0; i < numOfChild ; i++) {
+    for (int i = 0; i < numOfChild; i++) {
         int wtime;
         int rtime;
 
-        printf(1 , "iiiiiiiiiiiiiiiiiiiiiii %d\n" , i);
         int pid = wait2(&wtime, &rtime);
 
         int cid = getCid(pid);
 
-        switch (cid%3){
+        switch (cid % 3) {
             case 0 :
                 sumOfRtimeQ1 += rtime;
                 sumOfWtimeQ1 += wtime;
@@ -90,14 +90,19 @@ int main(void) {
     }
 
 
-    printf(1, "Average waiting time for all children : %f\n", sumOfWtime / numOfChild);
-    printf(1, "Average turnaround time for all children : %f\n", (sumOfWtime + sumOfRtime) / numOfChild);
-    printf(1, "Average waiting time for queue 1 children : %f\n", sumOfWtimeQ1 / numOfChild);
-    printf(1, "Average turnaround time for queue 1 children : %f\n", (sumOfWtimeQ1 + sumOfRtimeQ1) / numOfChild);
-    printf(1, "Average waiting time for queue 2 children : %f\n", sumOfWtimeQ2 / numOfChild);
-    printf(1, "Average turnaround time for queue 2 children : %f\n", (sumOfWtimeQ2 + sumOfRtimeQ2) / numOfChild);
-    printf(1, "Average waiting time for queue 3 children : %f\n", sumOfWtimeQ3 / numOfChild);
-    printf(1, "Average turnaround time for queue 3 children : %f\n", (sumOfWtimeQ3 + sumOfRtimeQ3) / numOfChild);
+    //double average1 = (double) sumOfWtime /  numOfChild ;
+    printf(1, "Average waiting time for all children : %d \n", sumOfWtime / numOfChild);
+    printf(1, "Average turnaround time for all children : %d \n",
+           (sumOfWtime + sumOfRtime) / numOfChild);
+    printf(1, "Average waiting time for queue 1 children : %d \n",  sumOfWtimeQ1 /  numOfChild);
+    printf(1, "Average turnaround time for queue 1 children : %d \n",
+           (sumOfWtimeQ1 + sumOfRtimeQ1) / numOfChild);
+    printf(1, "Average waiting time for queue 2 children : %d \n", sumOfWtimeQ2 /  numOfChild);
+    printf(1, "Average turnaround time for queue 2 children : %d \n",
+           (sumOfWtimeQ2 + sumOfRtimeQ2) / numOfChild);
+//    printf(1, "Average waiting time for queue 3 children : %d \n",  sumOfWtimeQ3 /  numOfChild);
+//    printf(1, "Average turnaround time for queue 3 children : %d \n",
+//           (sumOfWtimeQ3 + sumOfRtimeQ3) / numOfChild);
 
     exit();
 }
