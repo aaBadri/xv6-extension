@@ -36,10 +36,10 @@ int main(void) {
                     nice();
                     break;
                 case 1 :
-                    niceTwo();
+                    nice();
                     break;
             }
-            for (long j = 0; j < 10; j++) {
+            for (long j = 0; j < 1000; j++) {
                 printf(1, "cid : %d\n", i);
             }
             exit();
