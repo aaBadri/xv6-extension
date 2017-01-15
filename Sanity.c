@@ -40,6 +40,7 @@ int main(void) {
                     break;
                 case 1 :
                     nice();
+                    nice();
                     break;
             }
             for (long j = 0; j < 1000; j++) {
