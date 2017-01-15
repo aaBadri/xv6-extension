@@ -12,7 +12,7 @@ struct {
     struct spinlock lock;
     struct proc proc[NPROC];
 } ptable;
-
+struct spinlock mutex;
 /*
  queue implementation
  */
@@ -20,6 +20,15 @@ struct proc *runnableQ[NPROC];
 int front = 0;
 int rear = -1;
 int itemCount = 0;
+
+//Shradha changes begin
+struct semaphore {
+    int value;
+    int active;
+    struct spinlock lock;
+};
+
+struct semaphore sema[32];
 
 struct proc *peek() {
     return runnableQ[front];
@@ -96,7 +105,7 @@ int isEmptyQ(int priority) {
             e = 1;
         else
             e = 0;
-    } else {//if (priority == 2) {
+    } else if (priority == 2) {
         if (itemCount2 == 0)
             e = 1;
         else
@@ -117,7 +126,7 @@ int isFullQ(int priority) {
             f = 1;
         else
             f = 0;
-    } else {//if (priority == 2) {
+    } else if (priority == 2) {
         if (itemCount2 == NPROC)
             f = 1;
         else
@@ -128,6 +137,8 @@ int isFullQ(int priority) {
 }
 
 void insertQ(struct proc *data, int priority) {
+
+    acquire(&mutex);
     if (data && data->state == RUNNABLE) {
         if (priority == 0) {
             if (isFullQ(priority) == 0) {
@@ -162,9 +173,11 @@ void insertQ(struct proc *data, int priority) {
             }
         }
     }
+    release(&mutex);
 }
 
 struct proc *removeDataQ(int priority) {
+    acquire(&mutex);
     struct proc *data = 0;
     if (priority == 0) {
         data = Q0[front0++];
@@ -182,7 +195,7 @@ struct proc *removeDataQ(int priority) {
         }
 
         itemCount1--;
-    } else {//}*/if (priority == 2) {
+    } else if (priority == 2) {
         data = Q2[front2++];
 
         if (front2 == NPROC) {
@@ -191,8 +204,9 @@ struct proc *removeDataQ(int priority) {
 
         itemCount2--;
     }
-    return data;
+    release(&mutex);
 
+    return data;
 }
 
 static struct proc *initproc;
@@ -234,6 +248,7 @@ allocproc(void) {
     p->priority = 2;
     p->ctime = ticks;
     p->pid = nextpid++;
+    p->quantom_use = 0;
 
     release(&ptable.lock);
 
@@ -261,10 +276,77 @@ allocproc(void) {
     return p;
 }
 
+
+//Shradha changes begin
+int
+sem_init(int sem, int value)
+{
+    acquire(&sema[sem].lock);
+
+    if (sema[sem].active == 0)
+    {
+        sema[sem].active = 1;
+        sema[sem].value = value;
+    }
+    else
+    {
+        return -1;
+    }
+
+    release(&sema[sem].lock);
+
+    return 0;
+}
+
+int
+sem_destroy(int sem)
+{
+    acquire(&sema[sem].lock);
+    sema[sem].active = 0;
+    release(&sema[sem].lock);
+
+    return 0;
+}
+
+int sem_wait(int sem, int count)
+{
+    acquire(&sema[sem].lock);
+
+    if (sema[sem].value >= count)
+    {
+        sema[sem].value = sema[sem].value - count;
+    }
+    else
+    {
+        while (sema[sem].value < count)
+        {
+            sleep(&sema[sem],&sema[sem].lock);
+        }
+        sema[sem].value = sema[sem].value - count;
+    }
+
+    release(&sema[sem].lock);
+
+    return 0;
+}
+
+int sem_signal(int sem, int count)
+{
+    acquire(&sema[sem].lock);
+
+    sema[sem].value = sema[sem].value + count;
+    wakeup(&sema[sem]);
+    release(&sema[sem].lock);
+
+    return 0;
+}
+
 //PAGEBREAK: 32
 // Set up first user process.
 void
 userinit(void) {
+    initlock(&mutex, "salama");
+
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
 
@@ -420,7 +502,7 @@ exit(void) {
 
     // Jump into the scheduler, never to return.
     proc->state = ZOMBIE;
-    p->etime = ticks;
+    proc->etime = ticks;
     sched();
     panic("zombie exit");
 }
@@ -440,6 +522,12 @@ wait2(void) {
             havekids = 1;
             if (p->state == ZOMBIE) {
                 // Found one.
+                char *wtime = 0, *rtime = 0;
+                argptr(0, &wtime, sizeof(int));
+                argptr(1, &rtime, sizeof(int));
+
+                *wtime = (p->etime - p->ctime) - p->rtime;
+                *rtime = p->rtime;
                 pid = p->pid;
                 kfree(p->kstack);
                 p->kstack = 0;
@@ -450,12 +538,6 @@ wait2(void) {
                 p->killed = 0;
                 p->state = UNUSED;
                 release(&ptable.lock);
-                char *wtime = 0, *rtime = 0;
-                argptr(0, &wtime, sizeof(int));
-                argptr(1, &rtime, sizeof(int));
-
-                *wtime = (proc->etime - proc->ctime) - proc->rtime;
-                *rtime = proc->rtime;
                 return pid;
             }
         }
@@ -561,9 +643,9 @@ void addToRunnableQ() {
 void printQ() {
     cprintf("content of Q : < ");
     for (int i = front; i <= rear; i++) {
-        if( i < rear ) {
+        if (i < rear) {
             cprintf("%d , ", runnableQ[i]->pid);
-        }else{
+        } else {
             cprintf("%d >", runnableQ[i]->pid);
         }
 
@@ -582,101 +664,41 @@ void printQ() {
 //      via swtch back to the scheduler.
 void
 scheduler(void) {
-    int index = 0;
     for (;;) {
         // Enable interrupts on this processor.
         sti();
-        index = index % QUANTA;
-        if (index == 0) {
-            // Loop over process table looking for process to run.
-            if (policy == 1) { //for FRR policy
-                struct proc *p;
+        // Loop over process table looking for process to run.
+        if (policy == 1) { //for FRR policy
+            struct proc *p;
 
-                acquire(&ptable.lock);
-                // addToRunnableQ();
-                if (isEmpty() == 0) {
-                    printQ();
-                    p = removeData();
-                    proc = p;
-                    switchuvm(p);
-                    p->state = RUNNING;
-                    swtch(&cpu->scheduler, p->context);
-                    switchkvm();
-                    proc = 0;
-                }
-                release(&ptable.lock);
+            acquire(&ptable.lock);
+            // addToRunnableQ();
+            if (isEmpty() == 0) {
+                printQ();
+                p = removeData();
+                proc = p;
+                switchuvm(p);
+                p->state = RUNNING;
+                swtch(&cpu->scheduler, p->context);
+                switchkvm();
+                proc = 0;
+            }
+            release(&ptable.lock);
 
-            } else if (policy == 2) { //for GRT policy
-                struct proc *p;
-                int indexOfProcess;
-                int minIndex;
+        } else if (policy == 2) { //for GRT policy
+            struct proc *p;
+            int indexOfProcess;
+            int minIndex;
 
-                acquire(&ptable.lock);
-                minIndex = getMinIndex();
-                indexOfProcess = -1;
-                for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-                    indexOfProcess++;
-                    if (p->state != RUNNABLE || indexOfProcess != minIndex)
-                        continue;
-                    else {
-                        // minP = &ptable.proc[minIndex];
-                        // Switch to chosen process.  It is the process's job
-                        // to release ptable.lock and then reacquire it
-                        // before jumping back to us.
-                        proc = p;
-                        switchuvm(p);
-                        p->state = RUNNING;
-                        swtch(&cpu->scheduler, p->context);
-                        switchkvm();
-                        // Process is done running for now.
-                        // It should have changed its p->state before coming back.
-                        proc = 0;
-                        minIndex = getMinIndex();
-                        indexOfProcess = -1;
-                        p = ptable.proc;
-                    }
-                }
-                release(&ptable.lock);
-            } else if (policy == 3) { //  for 3Q policy
-                struct proc *p;
-                acquire(&ptable.lock);
-                if (isEmptyQ(2) == 0) {
-                    p = removeDataQ(2);
-                    proc = p;
-                    switchuvm(p);
-                    p->state = RUNNING;
-                    swtch(&cpu->scheduler, p->context);
-                    switchkvm();
-                    proc = 0;
-                } else {
-                    if (isEmptyQ(1) == 0) {
-                        p = removeDataQ(1);
-                        proc = p;
-                        switchuvm(p);
-                        p->state = RUNNING;
-                        swtch(&cpu->scheduler, p->context);
-                        switchkvm();
-                        proc = 0;
-                    } else {
-                        if (isEmptyQ(0) == 0) {
-                            p = removeDataQ(0);
-                            proc = p;
-                            switchuvm(p);
-                            p->state = RUNNING;
-                            swtch(&cpu->scheduler, p->context);
-                            switchkvm();
-                            proc = 0;
-                        }
-                    }
-                }
-                release(&ptable.lock);
-            } else {
-                struct proc *p;
-                acquire(&ptable.lock);
-                for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-                    if (p->state != RUNNABLE)
-                        continue;
-
+            acquire(&ptable.lock);
+            minIndex = getMinIndex();
+            indexOfProcess = -1;
+            for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+                indexOfProcess++;
+                if (p->state != RUNNABLE || indexOfProcess != minIndex)
+                    continue;
+                else {
+                    // minP = &ptable.proc[minIndex];
                     // Switch to chosen process.  It is the process's job
                     // to release ptable.lock and then reacquire it
                     // before jumping back to us.
@@ -685,15 +707,74 @@ scheduler(void) {
                     p->state = RUNNING;
                     swtch(&cpu->scheduler, p->context);
                     switchkvm();
-
                     // Process is done running for now.
                     // It should have changed its p->state before coming back.
                     proc = 0;
+                    minIndex = getMinIndex();
+                    indexOfProcess = -1;
+                    p = ptable.proc;
                 }
-                release(&ptable.lock);
             }
+            release(&ptable.lock);
+        } else if (policy == 3) { //  for 3Q policy
+            struct proc *p;
+            acquire(&ptable.lock);
+            if (isEmptyQ(2) == 0) {
+                p = removeDataQ(2);
+                proc = p;
+                switchuvm(p);
+                p->state = RUNNING;
+                p->quantom_use = 0;
+                swtch(&cpu->scheduler, p->context);
+                switchkvm();
+                proc = 0;
+            } else {
+                if (isEmptyQ(1) == 0) {
+                    p = removeDataQ(1);
+                    proc = p;
+                    switchuvm(p);
+                    p->state = RUNNING;
+                    p->quantom_use = 0 ;
+                    swtch(&cpu->scheduler, p->context);
+                    switchkvm();
+                    proc = 0;
+                }
+                else {
+                    if (isEmptyQ(0) == 0) {
+                        p = removeDataQ(0);
+                        proc = p;
+                        switchuvm(p);
+                        p->state = RUNNING;
+                        p->quantom_use = 0;
+                        swtch(&cpu->scheduler, p->context);
+                        switchkvm();
+                        proc = 0;
+                    }
+                }
+            }
+            release(&ptable.lock);
+        } else {
+            struct proc *p;
+            acquire(&ptable.lock);
+            for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+                if (p->state != RUNNABLE)
+                    continue;
+
+                // Switch to chosen process.  It is the process's job
+                // to release ptable.lock and then reacquire it
+                // before jumping back to us.
+                proc = p;
+                switchuvm(p);
+                p->state = RUNNING;
+                swtch(&cpu->scheduler, p->context);
+                switchkvm();
+
+                // Process is done running for now.
+                // It should have changed its p->state before coming back.
+                proc = 0;
+            }
+            release(&ptable.lock);
         }
-        index++;
     }
 }
 
@@ -809,7 +890,7 @@ wakeup1(void *chan) {
                 insert(p);
             else if (policy == 3) {
                 if (p->priority && p->state == RUNNABLE) {
-                   // cprintf("pppp :%d",p->priority);
+                    // cprintf("pppp :%d",p->priority);
                     insertQ(p, p->priority);
                 }
                 //TODO 3Q

@@ -35,6 +35,11 @@ int mkdir(char *);
 int chdir(char *);
 
 int wait2(int *, int *);
+//Shradha changes begin
+int sem_init(int sem, int value);
+int sem_destroy(int sem);
+int sem_wait(int sem, int count);
+int sem_signal(int sem, int count);
 
 int dup(int);
 
@@ -43,6 +48,8 @@ int getpid(void);
 int getppid(void);
 
 int nice(void);
+
+int niceTwo(void);
 
 char *sbrk(int);
 

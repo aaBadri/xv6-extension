@@ -1,4 +1,5 @@
 // Per-CPU state
+
 struct cpu {
     uchar apicid;                // Local APIC ID
     struct context *scheduler;   // swtch() here to enter scheduler
@@ -69,6 +70,7 @@ struct proc{
     int etime;                    //Time of process termination
     int rtime;                    //Time of process running
     int priority;
+    int quantom_use;
 };
 
 // Process memory is laid out contiguously, low addresses first:

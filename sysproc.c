@@ -54,11 +54,72 @@ sys_wait2(void) {
 }
 
 int
+sys_sem_init(void)
+{
+    int sem;
+    int value;
+
+    if (argint(0, &sem) < 0)
+        return -1;
+    if (argint(1, &value) < 0)
+        return -1;
+
+    return sem_init(sem, value);
+}
+
+int
+sys_sem_destroy(void)
+{
+    int sem;
+
+    if (argint(0, &sem) < 0)
+        return -1;
+
+    return sem_destroy(sem);
+}
+
+int sys_sem_wait(void)
+{
+    int sem;
+    int count;
+
+    if (argint(0, &sem) < 0)
+        return -1;
+    if (argint(1, &count) < 0)
+        return -1;
+
+    return sem_wait(sem, count);
+}
+int
+sys_sem_signal(void){
+    int sem;
+    int count;
+
+    if (argint(0, &sem) < 0)
+        return -1;
+    if (argint(1, &count) < 0)
+        return -1;
+
+    return sem_signal(sem, count);
+}
+
+int
 sys_nice() {
 
+    //cprintf("in nice syscall , priority is : %d\n" , proc->priority);
     if (proc && proc->priority > 0) {
         (proc->priority)--;
+        return 0;
+    } else
+        return -1;
+}
 
+int
+sys_niceTwo() {
+
+    //cprintf("in nice syscall , priority is : %d\n" , proc->priority);
+    if (proc && proc->priority > 0) {
+        (proc->priority) = proc->priority - 2;
         return 0;
     } else
         return -1;

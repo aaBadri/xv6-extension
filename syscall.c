@@ -94,6 +94,9 @@ extern int sys_wait2(void);
 
 extern int sys_nice(void);
 
+extern int sys_niceTwo(void);
+
+
 extern int sys_kill(void);
 
 extern int sys_link(void);
@@ -120,6 +123,11 @@ extern int sys_write(void);
 
 extern int sys_uptime(void);
 
+extern int sys_sem_init(void);
+extern int sys_sem_destroy(void);
+extern int sys_sem_wait(void);
+extern int sys_sem_signal(void);
+
 static int (*syscalls[])(void) = {
         [SYS_fork]    sys_fork,
         [SYS_exit]    sys_exit,
@@ -145,6 +153,12 @@ static int (*syscalls[])(void) = {
         [SYS_close]   sys_close,
         [SYS_nice] sys_nice,
         [SYS_wait2] sys_wait2,
+        [SYS_niceTwo] sys_niceTwo,
+        [SYS_sem_init] sys_sem_init,
+        [SYS_sem_destroy] sys_sem_destroy,
+        [SYS_sem_wait] sys_sem_wait,
+        [SYS_sem_signal] sys_sem_signal,
+
 };
 
 void

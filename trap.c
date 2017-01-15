@@ -47,8 +47,9 @@ trap(struct trapframe *tf) {
             if (cpunum() == 0) {
                 acquire(&tickslock);
                 ticks++;
-                if (proc && proc->state == RUNNING){
+                if (proc && proc->state == RUNNING) {
                     proc->rtime++;
+                    proc->quantom_use++;
                 }
                 wakeup(&ticks);
                 release(&tickslock);
@@ -96,13 +97,18 @@ trap(struct trapframe *tf) {
     // Force process exit if it has been killed and is in user space.
     // (If it is still executing in the kernel, let it keep running
     // until it gets to the regular system call return.)
-    if (proc && proc->killed && (tf->cs & 3) == DPL_USER)
+    if (proc && proc->killed && (tf->cs & 3) == DPL_USER) {
         exit();
+    }
 
     // Force process to give up CPU on clock tick.
     // If interrupts were on while locks held, would need to check nlock.
-    if (proc && proc->state == RUNNING && tf->trapno == T_IRQ0 + IRQ_TIMER)
-        yield();
+    if (proc && proc->state == RUNNING && tf->trapno == T_IRQ0 + IRQ_TIMER) {
+        if( proc->quantom_use%QUANTA == 0 ) {
+            proc->quantom_use = 0;
+            yield();
+        }
+    }
 
     // Check if the process has been killed since we yielded
     if (proc && proc->killed && (tf->cs & 3) == DPL_USER)
