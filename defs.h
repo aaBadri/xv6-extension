@@ -115,8 +115,10 @@ void            sleep(void*, struct spinlock*);
 void            userinit(void);
 int             wait(void);
 int             wait2(void);
-void            wait_semaphore(void);
-void            signal_semaphore(void);
+int             sem_init(int, int);
+int             sem_destroy(int);
+int             sem_wait(int, int);
+int             sem_signal(int, int);
 void            wakeup(void*);
 void            yield(void);
 

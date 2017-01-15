@@ -13,7 +13,6 @@ struct {
     struct proc proc[NPROC];
 } ptable;
 struct spinlock mutex;
-struct spinlock mutexSemaphore;
 /*
  queue implementation
  */
@@ -21,6 +20,15 @@ struct proc *runnableQ[NPROC];
 int front = 0;
 int rear = -1;
 int itemCount = 0;
+
+//Shradha changes begin
+struct semaphore {
+    int value;
+    int active;
+    struct spinlock lock;
+};
+
+struct semaphore sema[32];
 
 struct proc *peek() {
     return runnableQ[front];
@@ -129,6 +137,7 @@ int isFullQ(int priority) {
 }
 
 void insertQ(struct proc *data, int priority) {
+
     acquire(&mutex);
     if (data && data->state == RUNNABLE) {
         if (priority == 0) {
@@ -238,8 +247,8 @@ allocproc(void) {
     p->rtime = 0;
     p->priority = 2;
     p->ctime = ticks;
-    p->quantom_use = 0;
     p->pid = nextpid++;
+    p->quantom_use = 0;
 
     release(&ptable.lock);
 
@@ -268,14 +277,68 @@ allocproc(void) {
 }
 
 
-void
-wait_semaphore(void) {
-    acquire(&mutexSemaphore);
+//Shradha changes begin
+int
+sem_init(int sem, int value)
+{
+    acquire(&sema[sem].lock);
+
+    if (sema[sem].active == 0)
+    {
+        sema[sem].active = 1;
+        sema[sem].value = value;
+    }
+    else
+    {
+        return -1;
+    }
+
+    release(&sema[sem].lock);
+
+    return 0;
 }
 
-void
-signal_semaphore(void) {
-    release(&mutexSemaphore);
+int
+sem_destroy(int sem)
+{
+    acquire(&sema[sem].lock);
+    sema[sem].active = 0;
+    release(&sema[sem].lock);
+
+    return 0;
+}
+
+int sem_wait(int sem, int count)
+{
+    acquire(&sema[sem].lock);
+
+    if (sema[sem].value >= count)
+    {
+        sema[sem].value = sema[sem].value - count;
+    }
+    else
+    {
+        while (sema[sem].value < count)
+        {
+            sleep(&sema[sem],&sema[sem].lock);
+        }
+        sema[sem].value = sema[sem].value - count;
+    }
+
+    release(&sema[sem].lock);
+
+    return 0;
+}
+
+int sem_signal(int sem, int count)
+{
+    acquire(&sema[sem].lock);
+
+    sema[sem].value = sema[sem].value + count;
+    wakeup(&sema[sem]);
+    release(&sema[sem].lock);
+
+    return 0;
 }
 
 //PAGEBREAK: 32
@@ -283,7 +346,6 @@ signal_semaphore(void) {
 void
 userinit(void) {
     initlock(&mutex, "salama");
-    initmylock(&mutexSemaphore, "mutex");
 
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
@@ -582,20 +644,14 @@ void printQ() {
     cprintf("content of Q : < ");
     for (int i = front; i <= rear; i++) {
         if (i < rear) {
-            acquire(&mutexSemaphore);
             cprintf("%d , ", runnableQ[i]->pid);
-            release(&mutexSemaphore);
         } else {
-            acquire(&mutexSemaphore);
             cprintf("%d >", runnableQ[i]->pid);
-            release(&mutexSemaphore);
         }
 
     }
 
-    acquire(&mutexSemaphore);
     cprintf("\n");
-    release(&mutexSemaphore);
 }
 
 //PAGEBREAK: 42
@@ -663,11 +719,12 @@ scheduler(void) {
         } else if (policy == 3) { //  for 3Q policy
             struct proc *p;
             acquire(&ptable.lock);
-            if (isEmptyQ(2) == 2) {
+            if (isEmptyQ(2) == 0) {
                 p = removeDataQ(2);
                 proc = p;
                 switchuvm(p);
                 p->state = RUNNING;
+                p->quantom_use = 0;
                 swtch(&cpu->scheduler, p->context);
                 switchkvm();
                 proc = 0;
@@ -677,15 +734,18 @@ scheduler(void) {
                     proc = p;
                     switchuvm(p);
                     p->state = RUNNING;
+                    p->quantom_use = 0 ;
                     swtch(&cpu->scheduler, p->context);
                     switchkvm();
                     proc = 0;
-                } else {
+                }
+                else {
                     if (isEmptyQ(0) == 0) {
                         p = removeDataQ(0);
                         proc = p;
                         switchuvm(p);
                         p->state = RUNNING;
+                        p->quantom_use = 0;
                         swtch(&cpu->scheduler, p->context);
                         switchkvm();
                         proc = 0;

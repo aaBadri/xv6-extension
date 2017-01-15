@@ -20,7 +20,7 @@ int getCid(int pid) {
 
 int main(void) {
     int childPid[numOfChild];
-
+    sem_init(0 , 1);
 
     for (int i = 0; i < numOfChild; i++) {
         childPid[i] = 0;
@@ -34,23 +34,24 @@ int main(void) {
 //            signal_semaphore();
             exit();
         } else if (childPid[i] == 0) {
-            switch (i % 3) {
-                case 0 :
-                    nice();
-                    break;
-                case 1 :
-                    nice();
-                    nice();
-                    break;
+            cidPid[i] = getpid();
+            if( i%3 == 0 ){
+                nice();
+            }else if ( i%3 == 1 ){
+                nice();
+//                nice();
+            }else{
             }
+
             for (long j = 0; j < 1000; j++) {
 //                wait_semaphore();
+                sem_wait(0,1);
                 printf(1, "cid : %d\n", i);
+                sem_signal(0,1);
 //                signal_semaphore();
             }
             exit();
         } else if (childPid[i] > 0) {
-            cidPid[i] = childPid[i];
             continue;
         }
     }
@@ -91,14 +92,17 @@ int main(void) {
         sumOfRtime += rtime;
         sumOfWtime += wtime;
 //        wait_semaphore();
+        sem_wait(0,1);
         printf(1, "child %d : \n", cid);
         printf(1, "wtime : %d , rtime : %d , turnaround time : %d\n\n", wtime, rtime, wtime + rtime);
+        sem_signal(0,1);
 //        signal_semaphore();
     }
 
 
     //double average1 = (double) sumOfWtime /  numOfChild ;
 //    wait_semaphore();
+    sem_wait(0,1);
     printf(1, "Average waiting time for all children : %d \n", sumOfWtime / numOfChild);
     printf(1, "Average turnaround time for all children : %d \n",
            (sumOfWtime + sumOfRtime) / numOfChild);
@@ -113,5 +117,8 @@ int main(void) {
 //           (sumOfWtimeQ3 + sumOfRtimeQ3) / numOfChild);
 //    signal_semaphore();
 
+    sem_signal(0,1);
+
+    sem_destroy(0);
     exit();
 }

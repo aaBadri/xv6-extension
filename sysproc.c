@@ -54,15 +54,53 @@ sys_wait2(void) {
 }
 
 int
-sys_wait_semaphore(void){
-    wait_semaphore();
-    return 0;
+sys_sem_init(void)
+{
+    int sem;
+    int value;
+
+    if (argint(0, &sem) < 0)
+        return -1;
+    if (argint(1, &value) < 0)
+        return -1;
+
+    return sem_init(sem, value);
 }
 
 int
-sys_signal_semaphore(void){
-    signal_semaphore();
-    return 0;
+sys_sem_destroy(void)
+{
+    int sem;
+
+    if (argint(0, &sem) < 0)
+        return -1;
+
+    return sem_destroy(sem);
+}
+
+int sys_sem_wait(void)
+{
+    int sem;
+    int count;
+
+    if (argint(0, &sem) < 0)
+        return -1;
+    if (argint(1, &count) < 0)
+        return -1;
+
+    return sem_wait(sem, count);
+}
+int
+sys_sem_signal(void){
+    int sem;
+    int count;
+
+    if (argint(0, &sem) < 0)
+        return -1;
+    if (argint(1, &count) < 0)
+        return -1;
+
+    return sem_signal(sem, count);
 }
 
 int

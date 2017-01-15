@@ -35,10 +35,11 @@ int mkdir(char *);
 int chdir(char *);
 
 int wait2(int *, int *);
-
-int wait_semaphore();
-
-int signal_semaphore();
+//Shradha changes begin
+int sem_init(int sem, int value);
+int sem_destroy(int sem);
+int sem_wait(int sem, int count);
+int sem_signal(int sem, int count);
 
 int dup(int);
 
