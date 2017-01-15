@@ -13,6 +13,7 @@ struct {
     struct proc proc[NPROC];
 } ptable;
 struct spinlock mutex;
+struct spinlock console;
 /*
  queue implementation
  */
@@ -346,6 +347,7 @@ int sem_signal(int sem, int count)
 void
 userinit(void) {
     initlock(&mutex, "salama");
+    initlock(&console , "console");
 
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
@@ -462,6 +464,9 @@ fork(void) {
     return pid;
 }
 
+int getpid(){
+    return proc->pid;
+}
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait() to find out it exited.
@@ -510,7 +515,7 @@ exit(void) {
 int
 wait2(void) {
     struct proc *p;
-    int havekids, pid;
+    int havekids;
 
     acquire(&ptable.lock);
     for (;;) {
@@ -528,7 +533,7 @@ wait2(void) {
 
                 *wtime = (p->etime - p->ctime) - p->rtime;
                 *rtime = p->rtime;
-                pid = p->pid;
+                int cid = p->cid;
                 kfree(p->kstack);
                 p->kstack = 0;
                 freevm(p->pgdir);
@@ -538,7 +543,7 @@ wait2(void) {
                 p->killed = 0;
                 p->state = UNUSED;
                 release(&ptable.lock);
-                return pid;
+                return cid;
             }
         }
         // No point waiting if we don't have any children.
@@ -674,7 +679,9 @@ scheduler(void) {
             acquire(&ptable.lock);
             // addToRunnableQ();
             if (isEmpty() == 0) {
+                acquire(&console);
                 printQ();
+                release(&console);
                 p = removeData();
                 proc = p;
                 switchuvm(p);

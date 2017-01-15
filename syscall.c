@@ -113,6 +113,8 @@ extern int sys_read(void);
 
 extern int sys_sbrk(void);
 
+extern int sys_set_cid(void);
+
 extern int sys_sleep(void);
 
 extern int sys_unlink(void);
@@ -158,6 +160,7 @@ static int (*syscalls[])(void) = {
         [SYS_sem_destroy] sys_sem_destroy,
         [SYS_sem_wait] sys_sem_wait,
         [SYS_sem_signal] sys_sem_signal,
+        [SYS_set_cid] sys_set_cid,
 
 };
 

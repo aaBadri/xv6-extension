@@ -41,6 +41,8 @@ int sem_destroy(int sem);
 int sem_wait(int sem, int count);
 int sem_signal(int sem, int count);
 
+int set_cid(int);
+
 int dup(int);
 
 int getpid(void);

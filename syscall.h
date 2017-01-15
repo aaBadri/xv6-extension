@@ -28,3 +28,4 @@
 #define SYS_sem_wait 27
 #define SYS_sem_init 28
 #define SYS_sem_destroy 29
+#define SYS_set_cid 30

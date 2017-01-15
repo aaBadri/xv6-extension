@@ -19,6 +19,14 @@ sys_exit(void) {
 }
 
 int
+sys_set_cid(void){
+    int cid = 0;
+    argint(0 , &cid);
+    proc->cid = cid;
+    return 0;
+}
+
+int
 sys_wait(void) {
     return wait();
 }
@@ -34,7 +42,7 @@ sys_kill(void) {
 
 int
 sys_getpid(void) {
-    return proc->pid;
+    return getpid();
 }
 
 int
