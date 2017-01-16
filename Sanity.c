@@ -26,9 +26,10 @@ int main(void) {
             set_cid(i);
             if( i%3 == 0 ){
                 nice();
+//                nice();
             }else if ( i%3 == 1 ){
                 nice();
-//                nice();
+                nice();
             }else{
             }
 

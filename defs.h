@@ -115,6 +115,7 @@ void            sched(void);
 void            sleep(void*, struct spinlock*);
 void            userinit(void);
 int             wait(void);
+int             nice(void);
 int             wait2(void);
 int             sem_init(int, int);
 int             sem_destroy(int);
