@@ -90,6 +90,13 @@ extern int sys_getpid(void);
 
 extern int sys_getppid(void);
 
+extern int sys_wait2(void);
+
+extern int sys_nice(void);
+
+extern int sys_niceTwo(void);
+
+
 extern int sys_kill(void);
 
 extern int sys_link(void);
@@ -106,6 +113,8 @@ extern int sys_read(void);
 
 extern int sys_sbrk(void);
 
+extern int sys_set_cid(void);
+
 extern int sys_sleep(void);
 
 extern int sys_unlink(void);
@@ -115,6 +124,11 @@ extern int sys_wait(void);
 extern int sys_write(void);
 
 extern int sys_uptime(void);
+
+extern int sys_sem_init(void);
+extern int sys_sem_destroy(void);
+extern int sys_sem_wait(void);
+extern int sys_sem_signal(void);
 
 static int (*syscalls[])(void) = {
         [SYS_fork]    sys_fork,
@@ -139,6 +153,15 @@ static int (*syscalls[])(void) = {
         [SYS_link]    sys_link,
         [SYS_mkdir]   sys_mkdir,
         [SYS_close]   sys_close,
+        [SYS_nice] sys_nice,
+        [SYS_wait2] sys_wait2,
+        [SYS_niceTwo] sys_niceTwo,
+        [SYS_sem_init] sys_sem_init,
+        [SYS_sem_destroy] sys_sem_destroy,
+        [SYS_sem_wait] sys_sem_wait,
+        [SYS_sem_signal] sys_sem_signal,
+        [SYS_set_cid] sys_set_cid,
+
 };
 
 void

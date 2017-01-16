@@ -21,3 +21,11 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 #define SYS_getppid 22
+#define SYS_wait2 23
+#define SYS_nice 24
+#define SYS_niceTwo 25
+#define SYS_sem_signal 26
+#define SYS_sem_wait 27
+#define SYS_sem_init 28
+#define SYS_sem_destroy 29
+#define SYS_set_cid 30
