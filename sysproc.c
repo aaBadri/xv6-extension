@@ -111,32 +111,7 @@ sys_sem_signal(void) {
 
 int
 sys_nice() {
-
-    /*   //cprintf("in nice syscall , priority is : %d\n" , proc->priority);
-       if (proc && proc->priority > 0) {
-           (proc->priority)--;
-           return 0;
-       } else
-           return -1;*/
-    if (proc->priority == 2) {
-        proc->priority = 1;
-
-    } else if (proc->priority == 1) {
-        proc->priority = 0;
-        int i;
-        for (i = 0; i < itemCount_3; i++) {
-            int proc_temp = removeDataQ();
-            int pid_temp = proc_temp->pid;
-            if (proc->pid == pid_temp) {
-                continue;
-            }
-            insertQ(proc_temp);
-        }
-    } else if (proc->priority == 0) {
-        proc->priority = 0;
-    }
-
-    return proc->priority;
+    return nice();
 }
 
 int

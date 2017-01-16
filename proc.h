@@ -79,12 +79,3 @@ struct proc{
 //   original data and bss
 //   fixed-size stack
 //   expandable heap
-
-struct proc *Q_3[NPROC];
-int front_3;
-int rear_3;
-int itemCount_3;
-int isEmptyQ(int priority);
-int isFullQ(int priority);
-void insertQ(struct proc *data);
-struct proc *removeDataQ();
