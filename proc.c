@@ -548,27 +548,27 @@ wait(void) {
 
 int getMinIndexIn2Priority(void) {
     struct proc *p;
-    double minScore = 9999999.999999; //set to max value
+    double maxScore = -1; //set to min value
     int indexOfProcess = -1;
-    int minIndex = 999999; //set to max value
-    double s;
+    int maxIndex = 0;
+    long s;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         indexOfProcess++;
         if (p->state != RUNNABLE || p->priority != 2) {
             continue;
+        } else {
+            s = 99999999; //set to max value
+            if (p->rtime != 0)
+                s = (ticks - p->ctime) / p->rtime;
+            //cprintf("s is : %d\n" , s);
+            if (maxScore < s) {
+                maxScore = s;
+                maxIndex = indexOfProcess;
+            }
         }
-
-        s = 9999999.999999; //set to max value
-        if (ticks - p->ctime != 0)
-            s = (double) p->rtime / (double) ((double) ticks - (double) p->ctime);
-        if (minScore > s) {
-            minScore = s;
-            minIndex = indexOfProcess;
-        }
-        minIndex = indexOfProcess;
     }
 
-    return minIndex;
+    return maxIndex;
 }
 
 /**
@@ -724,9 +724,6 @@ scheduler(void) {
                         // Process is done running for now.
                         // It should have changed its p->state before coming back.
                         proc = 0;
-                        minIndex = getMinIndexIn2Priority();
-                        indexOfProcess = -1;
-                        p = ptable.proc;
                     }
                 }
                 release(&ptable.lock);
