@@ -690,9 +690,6 @@ scheduler(void) {
                     // Process is done running for now.
                     // It should have changed its p->state before coming back.
                     proc = 0;
-                    minIndex = getMinIndex();
-                    indexOfProcess = -1;
-                    p = ptable.proc;
                 }
             }
             release(&ptable.lock);
