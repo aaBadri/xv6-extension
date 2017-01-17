@@ -74,9 +74,9 @@ int main(void) {
                 numOfQ0++;
                 break;
             case 1 :
-                sumOfRtimeQ0 += rtime;
-                sumOfWtimeQ0 += wtime;
-                numOfQ0++;
+                sumOfRtimeQ1 += rtime;
+                sumOfWtimeQ1 += wtime;
+                numOfQ1++;
                 break;
             case 2 :
                 sumOfRtimeQ2 += rtime;
