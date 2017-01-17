@@ -725,7 +725,7 @@ scheduler(void) {
                         // Process is done running for now.
                         // It should have changed its p->state before coming back.
                         proc = 0;
-                        minIndex = getMinIndex();
+                        minIndex = getMinIndexIn2Priority();
                         indexOfProcess = -1;
                         p = ptable.proc;
                     }

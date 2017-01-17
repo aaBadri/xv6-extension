@@ -5,7 +5,7 @@
 #include "user.h"
 
 
-#define NUM_OF_CHILD 30
+#define NUM_OF_CHILD 5
 
 int main(void) {
     int childPid[NUM_OF_CHILD];
