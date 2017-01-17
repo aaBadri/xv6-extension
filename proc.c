@@ -59,7 +59,6 @@ int size() {
 }
 
 
-
 int countP(int priority) {
     if (priority == 1)
         return itemCount_3;
@@ -578,27 +577,27 @@ int getMinIndexIn2Priority(void) {
  */
 int getMinIndex(void) {
     struct proc *p;
-    double minScore = 9999999.999999; //set to max value
+    double maxScore = -1; //set to min value
     int indexOfProcess = -1;
-    int minIndex = 999999; //set to max value
-    double s;
+    int maxIndex = 0;
+    long s;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         indexOfProcess++;
         if (p->state != RUNNABLE) {
             continue;
+        } else {
+            s = 99999999; //set to max value
+            if (p->rtime != 0)
+                s = (ticks - p->ctime) / p->rtime;
+            //cprintf("s is : %d\n" , s);
+            if (maxScore < s) {
+                maxScore = s;
+                maxIndex = indexOfProcess;
+            }
         }
-
-        s = 9999999.999999; //set to max value
-        if (ticks - p->ctime != 0)
-            s = (double) p->rtime / (double) ((double) ticks - (double) p->ctime);
-        if (minScore > s) {
-            minScore = s;
-            minIndex = indexOfProcess;
-        }
-        minIndex = indexOfProcess;
     }
 
-    return minIndex;
+    return maxIndex;
 }
 
 /**
@@ -734,7 +733,7 @@ scheduler(void) {
             } else {
                 if (countP(1) != 0) {
                     acquire(&ptable.lock);
-                    if(isEmptyQ() == 0) {
+                    if (isEmptyQ() == 0) {
                         p = removeDataQ();
                         proc = p;
                         switchuvm(p);
